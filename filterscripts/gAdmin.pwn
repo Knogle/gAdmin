@@ -219,7 +219,7 @@ new g_Max_Players;
 #if defined MYSQL
 	#include <gAdmin/gSQL_StrickenKid>
 #else
-	#include <gAdmin/dfiles>
+	#include <gAdmin/ysi_files>
 #endif
 #if defined IRC
 #include <irc>
@@ -1023,14 +1023,14 @@ public OnFilterScriptInit()
 					#if defined MYSQL
 					if(gSQL_ExistUser(ThePlayer)) {
 					#else
-					if(udb_Exists(ThePlayer)) {
+					if(y_files_Exists(ThePlayer)) {
 					#endif
 					    IP[0]='\0';
 					    s[0]='\0';
 						#if defined MYSQL
 					    strcat(s,gSQL_GetUserVar(ThePlayer,"IP"),sizeof(s));
 						#else
-					    strcat(s,dUser(ThePlayer).("IP"),sizeof(s));
+					    strcat(s,yUser(ThePlayer).("IP"),sizeof(s));
 					    #endif
 			            GetPlayerIp(i,IP,sizeof(IP));
 						if((!strcmp(IP,s,true,sizeof(IP))) && (s[0])) {
@@ -1250,13 +1250,13 @@ public OnPlayerConnect(playerid)
 	#if defined MYSQL
 	if(gSQL_ExistUser(ThePlayer)) {
 	#else
-	if(udb_Exists(ThePlayer)) {
+	if(y_files_Exists(ThePlayer)) {
 	#endif
 	    // Trusted -1 means Banned
 		#if defined MYSQL
 		if(gSQL_GetUserVarAsInteger(ThePlayer,"Trusted") == -1 ) {
 		#else
-		if(dUserINT(ThePlayer).("Trusted") == -1 ) {
+		if(yUserINT(ThePlayer).("Trusted") == -1 ) {
 		#endif
 			BanEx2(playerid,13);
 		}
@@ -1264,7 +1264,7 @@ public OnPlayerConnect(playerid)
 			#if defined MYSQL
 			if(!strcmp(IP,gSQL_GetUserVar(ThePlayer,"IP"),true,sizeof(IP))) {
 			#else
-			if(!strcmp(IP,dUser(ThePlayer).("IP"),true,sizeof(IP))) {
+			if(!strcmp(IP,yUser(ThePlayer).("IP"),true,sizeof(IP))) {
 			#endif
 				OnPlayerLogin(playerid,LOGIN_AUTOIP);
 			}
@@ -1394,7 +1394,7 @@ public OnPlayerRequestSpawn(playerid)
 			#if defined MYSQL
 			if(!gSQL_ExistUser(PlayerName(playerid))) {
 			#else
-			if(!udb_Exists(PlayerName(playerid))) {
+			if(!y_files_Exists(PlayerName(playerid))) {
 			#endif
 	   			GameTextForPlayer(playerid,GetLanguageString(GetPlayerLanguageID(playerid),"txt_registerspawn2"),3*1000,5);
 				PlayerPlaySound(playerid,1055 ,0.0,0.0,0.0);
@@ -1443,7 +1443,7 @@ public OnPlayerSpawn(playerid)
 				#if defined MYSQL
 				if(gSQL_ExistUser(PlayerName(playerid))) {
 				#else
-				if(udb_Exists(PlayerName(playerid))) {
+				if(y_files_Exists(PlayerName(playerid))) {
 				#endif
 				    KillTimer(PlayerInfo[playerid][tLogin],600); // If there might be still a timer,destroy it!
 					SendClientLanguageMessage(playerid,COLOR_ORANGE,"txt_LoginSpawn",g_MAX_LOGIN_TIME);
@@ -3001,9 +3001,9 @@ public OnRconCommand(cmd[])
 			gettime(std,minute);
 			getdate(.month=m,.day=t);
 			format(name,sizeof(name),cmd[14]);
-			if(udb_Exists(name)) {
+			if(y_files_Exists(name)) {
 				format(dbgname,sizeof(dbgname),"%s%02d%02d%02d%02dbackup",name,m,t,std,minute);
-				udb_RenameUser(name,dbgname);
+				y_files_RenameUser(name,dbgname);
 				printf("Removed Account succesfully,Backup File is:%s.txt",dbgname);
 			}
 			else {
@@ -3069,7 +3069,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				#if defined MYSQL
 				if (gSQL_GetUserVarAsInteger(ThePlayer,"password_hash")==num_hash(inputtext)) {
 				#else
-				if (udb_CheckLogin(ThePlayer,inputtext)) {
+				if (y_files_CheckLogin(ThePlayer,inputtext)) {
 				#endif
 					OnPlayerLogin(playerid,LOGIN_NORMAL);
 					DeletePlayerFlag(playerid,PLAYER_FLAG_LOGINPANEL);
@@ -3149,18 +3149,18 @@ public OnPlayerLogin(playerid,type) {
 	PlayerInfo[playerid][UniqueID]=gSQL_GetUserVarAsInteger(ThePlayer,"ID");
 	PlayerInfo[playerid][iSeconds]=gSQL_GetUserVarAsInteger(ThePlayer,"OnlineTime");
 	#else
-	SetPlayerMoney(playerid,dUserINT(ThePlayer).("Money"));
-	SetPlayerScore(playerid,dUserINT(ThePlayer).("Score"));
-	PlayerInfo[playerid][Deaths]=dUserINT(ThePlayer).("Deaths");
-	PlayerInfo[playerid][Kills]=dUserINT(ThePlayer).("Kills");
-	PlayerInfo[playerid][AdminLevel]=dUserINT(ThePlayer).("AdminLevel");
-	PlayerInfo[playerid][iSeconds]=dUserINT(ThePlayer).("OnlineTime");
+	SetPlayerMoney(playerid,yUserINT(ThePlayer).("Money"));
+	SetPlayerScore(playerid,yUserINT(ThePlayer).("Score"));
+	PlayerInfo[playerid][Deaths]=yUserINT(ThePlayer).("Deaths");
+	PlayerInfo[playerid][Kills]=yUserINT(ThePlayer).("Kills");
+	PlayerInfo[playerid][AdminLevel]=yUserINT(ThePlayer).("AdminLevel");
+	PlayerInfo[playerid][iSeconds]=yUserINT(ThePlayer).("OnlineTime");
 	#endif
 	/* Language Search */
 	#if defined MYSQL
 	format(sTemp,sizeof(sTemp),gSQL_GetUserVar(ThePlayer,"Language"));
 	#else
-	format(sTemp,sizeof(sTemp),dUser(ThePlayer).("Language"));
+	format(sTemp,sizeof(sTemp),yUser(ThePlayer).("Language"));
 	#endif
 	for(new Language:i;_:i<Language_Count;_:i++) {
 	    if(!strcmp(GetShortLanguageName(i),sTemp,true,SMALL_LEN)) {
@@ -3176,7 +3176,7 @@ public OnPlayerLogin(playerid,type) {
 	#if defined MYSQL
 	format(sTemp,sizeof(sTemp),gSQL_GetUserVar(ThePlayer,"TimeBan"));
 	#else
-	format(sTemp,sizeof(sTemp),dUser(ThePlayer).("TimeBan"));
+	format(sTemp,sizeof(sTemp),yUser(ThePlayer).("TimeBan"));
 	#endif
 	if(sTemp[0]) {
 		if(sTemp[0]!='0' && sTemp[1]!=0) { // their is a timeban
@@ -3189,7 +3189,7 @@ public OnPlayerLogin(playerid,type) {
 			    #if defined MYSQL
 			    gSQL_SetUserVarAsInteger(ThePlayer,"TimeBan",0);
 			    #else
-			    dUserSet(ThePlayer).("TimeBan","0");
+			    yUserSet(ThePlayer).("TimeBan","0");
 				#endif
 			    format(s,sizeof(s),"[TimeBan] Player %s's timeban has expired",ThePlayer);
 				WriteLog(clearlog,s);
@@ -3204,13 +3204,13 @@ public OnPlayerLogin(playerid,type) {
 	#if defined MYSQL
 	PlayerInfo[playerid][BankMoney]=gSQL_GetUserVarAsInteger(ThePlayer,"BankMoney");
 	#else
-	PlayerInfo[playerid][BankMoney]=dUserINT(ThePlayer).("BankMoney");
+	PlayerInfo[playerid][BankMoney]=yUserINT(ThePlayer).("BankMoney");
 	#endif
 	#endif
 	#if defined MYSQL
 	PlayerInfo[playerid][SpawnCount]=gSQL_GetUserVarAsInteger(ThePlayer,"TimesSpawned");
 	#else
-	PlayerInfo[playerid][SpawnCount]=dUserINT(ThePlayer).("TimesSpawned");
+	PlayerInfo[playerid][SpawnCount]=yUserINT(ThePlayer).("TimesSpawned");
 	#endif
 
 	if(PlayerInfo[playerid][AdminLevel] >= g_Level[ladmintele]) {
@@ -3229,7 +3229,7 @@ public OnPlayerLogin(playerid,type) {
 		#if defined MYSQL
 		gSQL_SetUserVar(ThePlayer,"IP",pIP);
 		#else
-		dUserSet(ThePlayer).("IP",pIP);
+		yUserSet(ThePlayer).("IP",pIP);
 		#endif
 		SendClientLanguageMessage(playerid,COLOR_YELLOW,"txt_login1");
 	}
@@ -3266,23 +3266,23 @@ public OnPlayerLogout(playerid) {
 	#if defined MYSQL
 		gSQL_UpdateUser(ThePlayer,playerid);
 	#else
-		dUserSetINT(ThePlayer).("AdminLevel",PlayerInfo[playerid][AdminLevel]);
-		dUserSetINT(ThePlayer).("Money",GetPlayerMoney(playerid));
-		dUserSetINT(ThePlayer).("Score",GetPlayerScore(playerid));
+		yUserSetINT(ThePlayer).("AdminLevel",PlayerInfo[playerid][AdminLevel]);
+		yUserSetINT(ThePlayer).("Money",GetPlayerMoney(playerid));
+		yUserSetINT(ThePlayer).("Score",GetPlayerScore(playerid));
 		#if defined EXTRA_COMMANDS
-		dUserSetINT(ThePlayer).("BankMoney",PlayerInfo[playerid][BankMoney]);
+		yUserSetINT(ThePlayer).("BankMoney",PlayerInfo[playerid][BankMoney]);
 		#endif
-		dUserSet(ThePlayer).("Language",GetShortLanguageName(GetPlayerLanguageID(playerid)));
-		dUserSetINT(ThePlayer).("Kills",PlayerInfo[playerid][Kills]);
-		dUserSetINT(ThePlayer).("Deaths",PlayerInfo[playerid][Deaths]);
-		dUserSetINT(ThePlayer).("TimesSpawned",PlayerInfo[playerid][SpawnCount]);
+		yUserSet(ThePlayer).("Language",GetShortLanguageName(GetPlayerLanguageID(playerid)));
+		yUserSetINT(ThePlayer).("Kills",PlayerInfo[playerid][Kills]);
+		yUserSetINT(ThePlayer).("Deaths",PlayerInfo[playerid][Deaths]);
+		yUserSetINT(ThePlayer).("TimesSpawned",PlayerInfo[playerid][SpawnCount]);
 		PlayerInfo[playerid][iSeconds] += floatround(((GetTickCount() - PlayerInfo[playerid][tickConnect] ) / 1000));
-		dUserSetINT(ThePlayer).("OnlineTime",PlayerInfo[playerid][iSeconds] );
+		yUserSetINT(ThePlayer).("OnlineTime",PlayerInfo[playerid][iSeconds] );
 		#if defined SAVE_POS
 		GetPlayerPos(playerid,X,Y,Z);
-		dUserSetFLOAT(ThePlayer).("X",X);
-		dUserSetFLOAT(ThePlayer).("Y",Y);
-		dUserSetFLOAT(ThePlayer).("Z",Z);
+		yUserSetFLOAT(ThePlayer).("X",X);
+		yUserSetFLOAT(ThePlayer).("Y",Y);
+		yUserSetFLOAT(ThePlayer).("Z",Z);
 		#endif
 	#endif
 	AllowPlayerTeleport(playerid,0);
@@ -3344,27 +3344,27 @@ public OnPlayerRegister(playerid) {
 		#endif
 		PlayerInfo[playerid][UniqueID]=gSQL_GetUserVarAsInteger(ThePlayer,"ID");
 	#else
-		dUserSet(ThePlayer).("RegDate",s);
-		dUserSetINT(ThePlayer).("AdminLevel",1);
-		dUserSet(ThePlayer).("RegIP",pIP);
-		dUserSet(ThePlayer).("IP",pIP);
-		dUserSet(ThePlayer).("Language",GetShortLanguageName(GetPlayerLanguageID(playerid)));
-		dUserSetINT(ThePlayer).("Trusted",iTrusted);
-		dUserSetINT(ThePlayer).("TimeBan",0);
-		dUserSetINT(ThePlayer).("Money",GetPlayerMoney(playerid));
-		dUserSetINT(ThePlayer).("Score",GetPlayerScore(playerid));
-		dUserSetINT(ThePlayer).("Deaths",PlayerInfo[playerid][Deaths]);
-		dUserSetINT(ThePlayer).("Kills",PlayerInfo[playerid][Kills]);
+		yUserSet(ThePlayer).("RegDate",s);
+		yUserSetINT(ThePlayer).("AdminLevel",1);
+		yUserSet(ThePlayer).("RegIP",pIP);
+		yUserSet(ThePlayer).("IP",pIP);
+		yUserSet(ThePlayer).("Language",GetShortLanguageName(GetPlayerLanguageID(playerid)));
+		yUserSetINT(ThePlayer).("Trusted",iTrusted);
+		yUserSetINT(ThePlayer).("TimeBan",0);
+		yUserSetINT(ThePlayer).("Money",GetPlayerMoney(playerid));
+		yUserSetINT(ThePlayer).("Score",GetPlayerScore(playerid));
+		yUserSetINT(ThePlayer).("Deaths",PlayerInfo[playerid][Deaths]);
+		yUserSetINT(ThePlayer).("Kills",PlayerInfo[playerid][Kills]);
 		#if defined EXTRA_COMMANDS
-		dUserSetINT(ThePlayer).("BankMoney",PlayerInfo[playerid][BankMoney]);
+		yUserSetINT(ThePlayer).("BankMoney",PlayerInfo[playerid][BankMoney]);
 		#endif
-		dUserSetINT(ThePlayer).("TimesSpawned",PlayerInfo[playerid][SpawnCount]);
+		yUserSetINT(ThePlayer).("TimesSpawned",PlayerInfo[playerid][SpawnCount]);
 		PlayerInfo[playerid][iSeconds] = floatround(((GetTickCount() - PlayerInfo[playerid][tickConnect] ) / 1000));
-		dUserSetINT(ThePlayer).("OnlineTime",PlayerInfo[playerid][iSeconds]);
+		yUserSetINT(ThePlayer).("OnlineTime",PlayerInfo[playerid][iSeconds]);
 		#if defined SAVE_POS
-		dUserSetFLOAT(ThePlayer).("X",0.0);
-		dUserSetFLOAT(ThePlayer).("Y",0.0);
-		dUserSetFLOAT(ThePlayer).("Z",0.0);
+		yUserSetFLOAT(ThePlayer).("X",0.0);
+		yUserSetFLOAT(ThePlayer).("Y",0.0);
+		yUserSetFLOAT(ThePlayer).("Z",0.0);
 		#endif
 	#endif
 	AddPlayerFlag(playerid,PLAYER_FLAG_LOGGEDIN);
@@ -4381,15 +4381,15 @@ COMMAND:register(playerid,params[]) {
     #if defined MYSQL
 	if (gSQL_ExistUser(ThePlayer)) {
 	#else
-	if (udb_Exists(ThePlayer)) {
+	if (y_files_Exists(ThePlayer)) {
 	#endif
 		return SendClientLanguageMessage(playerid,COLOR_YELLOW,"txt_register2",#CMD_LOGIN);
 	}
 	else {
 	    #if defined MYSQL
-	    gSQL_AddUser(ThePlayer,params);
+	    gSQL_AdyUser(ThePlayer,params);
 	    #else
-	    udb_Create(ThePlayer,params);
+	    y_files_Create(ThePlayer,params);
 	    #endif
 		OnPlayerRegister(playerid);
 		SendClientLanguageMessage(playerid,COLOR_GREEN,"txt_selectlanguage");
@@ -4407,7 +4407,7 @@ COMMAND:login(playerid,params[]) {
 	#if defined MYSQL
 	if(!gSQL_ExistUser(ThePlayer)) {
 	#else
-	if(!udb_Exists(ThePlayer)) {
+	if(!y_files_Exists(ThePlayer)) {
 	#endif
 		return SendClientLanguageMessage(playerid,COLOR_YELLOW,"txt_login5",#CMD_REGISTER);
 	}
@@ -4419,7 +4419,7 @@ COMMAND:login(playerid,params[]) {
 		#if defined MYSQL
 		if (gSQL_GetUserVarAsInteger(ThePlayer,"password_hash")==num_hash(params)) {
 		#else
-		if (udb_CheckLogin(ThePlayer,params)) {
+		if (y_files_CheckLogin(ThePlayer,params)) {
 		#endif
 			printf("[Login] Skipped Login-Panel for %s (%d)",PlayerName(playerid),playerid);
 			OnPlayerLogin(playerid,LOGIN_NORMAL);
@@ -4447,7 +4447,7 @@ COMMAND:login(playerid,params[]) {
 		#if defined MYSQL
 		if (gSQL_GetUserVarAsInteger(ThePlayer,"password_hash")==num_hash(params)) {
 		#else
-		if (udb_CheckLogin(ThePlayer,params)) {
+		if (y_files_CheckLogin(ThePlayer,params)) {
 		#endif
 			OnPlayerLogin(playerid,LOGIN_NORMAL);
 			return 1;
@@ -4476,22 +4476,22 @@ COMMAND:changepw(playerid,params[]) {
 	if(gSQL_GetUserVarAsInteger(ThePlayer,"password_hash")==n_hash && IsPlayerFlag(playerid,PLAYER_FLAG_LOGGEDIN) && strlen(tmp2)>=4) {
 	    gSQL_SetUserVarAsInteger(ThePlayer,"password_hash",num_hash(tmp2));
 	#else
-	if(udb_CheckLogin(ThePlayer,tmp)==1 && IsPlayerFlag(playerid,PLAYER_FLAG_LOGGEDIN) && strlen(tmp2)>=4) {
-		udb_UserSetInt(ThePlayer,"password_hash",num_hash(tmp2));
+	if(y_files_CheckLogin(ThePlayer,tmp)==1 && IsPlayerFlag(playerid,PLAYER_FLAG_LOGGEDIN) && strlen(tmp2)>=4) {
+		y_files_UserSetInt(ThePlayer,"password_hash",num_hash(tmp2));
 	#endif
 		SendClientLanguageMessage(playerid,COLOR_ORANGE,"txt_changepw1",tmp2);
 	}
 	#if defined MYSQL
 	else if(gSQL_GetUserVarAsInteger(ThePlayer,"password_hash")==n_hash && IsPlayerFlag(playerid,PLAYER_FLAG_LOGGEDIN) && strlen(tmp2)<4) {
 	#else
-	else if(udb_CheckLogin(ThePlayer,tmp)==1 && IsPlayerFlag(playerid,PLAYER_FLAG_LOGGEDIN) && strlen(tmp2)<4) {
+	else if(y_files_CheckLogin(ThePlayer,tmp)==1 && IsPlayerFlag(playerid,PLAYER_FLAG_LOGGEDIN) && strlen(tmp2)<4) {
 	#endif
 		SendClientLanguageMessage(playerid,COLOR_ORANGE,"txt_changepw3");
 	}
 	#if defined MYSQL
 	else if(gSQL_GetUserVarAsInteger(ThePlayer,"password_hash")!=n_hash) {
 	#else
-	else if(!udb_CheckLogin(ThePlayer,tmp)) {
+	else if(!y_files_CheckLogin(ThePlayer,tmp)) {
 	#endif
 		SendClientLanguageMessage(playerid,COLOR_RED,"txt_changepw2",tmp2);
 	}
@@ -4525,7 +4525,7 @@ COMMAND:data(playerid, params[]) {
 	#if defined MYSQL
 	    format(sDate,sizeof(sDate),gSQL_GetUserVar(ThePlayer,"RegDate"));
 	#else
-	    format(sDate,sizeof(sDate),dUser(ThePlayer).("RegDate"));
+	    format(sDate,sizeof(sDate),yUser(ThePlayer).("RegDate"));
 	#endif
 	ConvertSec((PlayerInfo[giveid][iSeconds] + floatround(((GetTickCount() - PlayerInfo[giveid][tickConnect] ) / 1000))),seconds,minute,hour);
 	format(s,sizeof(s),"------ User - %s (%d) --------",ThePlayer,giveid);
@@ -4940,7 +4940,7 @@ COMMAND:ban(playerid,params[]) {
 				#if defined MYSQL
 				gSQL_SetUserVarAsInteger(TheBannedPlayer,"Trusted",-1);
 				#else
-				dUserSetINT(TheBannedPlayer).("Trusted",-1);		// Remove from Trusted
+				yUserSetINT(TheBannedPlayer).("Trusted",-1);		// Remove from Trusted
 				#endif
 				return BanEx2(giveid,13);
 			}
@@ -4976,7 +4976,7 @@ COMMAND:tban(playerid,params[]) {
 			#if defined MYSQL
 			if(gSQL_ExistUser(ThePlayer)) {
 			#else
-			if(udb_Exists(ThePlayer)) {
+			if(y_files_Exists(ThePlayer)) {
 			#endif
 				if(PlayerInfo[giveid][AdminLevel]<2) {
 					new
@@ -4988,7 +4988,7 @@ COMMAND:tban(playerid,params[]) {
 					#if defined MYSQL
 					gSQL_SetUserVar(ThePlayer,"TimeBan",s);
 					#else
-					dUserSet(ThePlayer).("TimeBan",s);
+					yUserSet(ThePlayer).("TimeBan",s);
 					#endif
 					CreateClientLanguageMessages("txt_timeban2",ThePlayer,giveid,PlayerName(playerid),day,month,year);
 					SendAdminCommand(COLOR_ORANGERED);
@@ -5353,7 +5353,7 @@ COMMAND:addblack(playerid,params[]) {
 			#if defined MYSQL
 			if((gSQL_ExistUser(params)) && (gSQL_GetUserVarAsInteger(params,"AdminLevel") >= 2)) {
 			#else
-		  	if (udb_Exists(params) && dUserINT(params).("AdminLevel")>=2) {
+		  	if (y_files_Exists(params) && yUserINT(params).("AdminLevel")>=2) {
 			#endif
 		  		return SendClientLanguageMessage(playerid,COLOR_RED,"txt_rangeban1");
 			}
@@ -5370,7 +5370,7 @@ COMMAND:addblack(playerid,params[]) {
 				    #if defined MYSQL
 				    gSQL_SetUserVarAsInteger(ThePlayer,"Trusted",-1);
 				    #else
-  					dUserSetINT(ThePlayer).("Trusted",-1);			  				// Remove from Trusted
+  					yUserSetINT(ThePlayer).("Trusted",-1);			  				// Remove from Trusted
 					#endif
 				   	return Ban(giveid);
 				}
@@ -5381,7 +5381,7 @@ COMMAND:addblack(playerid,params[]) {
 				    #if defined MYSQL
 				    gSQL_SetUserVarAsInteger(params,"Trusted",-1);
 				    #else
-  					dUserSetINT(params).("Trusted",-1);		  			// Remove from Trusted
+  					yUserSetINT(params).("Trusted",-1);		  			// Remove from Trusted
 					#endif
  					if(check==1) { //No msg (XY has been blacklisted) if entry already exists)
 						CreateClientLanguageMessages("txt_addblack2",params,giveid);
@@ -5418,7 +5418,7 @@ COMMAND:addwhite(playerid,params[]) {
 			    #if defined MYSQL
 			    gSQL_SetUserVarAsInteger(PlayerName(giveid),"Trusted",1);
 			    #else
-				dUserSetINT(PlayerName(giveid)).("Trusted",1);
+				yUserSetINT(PlayerName(giveid)).("Trusted",1);
 				#endif
   				WriteWhiteList(playerid,PlayerName(giveid));
 			}
@@ -5426,7 +5426,7 @@ COMMAND:addwhite(playerid,params[]) {
 			    #if defined MYSQL
 			    gSQL_SetUserVarAsInteger(params,"Trusted",1);
 			    #else
-				dUserSetINT(params).("Trusted",1);
+				yUserSetINT(params).("Trusted",1);
 				#endif
   				WriteWhiteList(playerid,params);
    		   	}
@@ -5477,7 +5477,7 @@ COMMAND:banip(playerid, params[]) {
 	   			#if defined MYSQL
 	   			gSQL_SetUserVarAsInteger(PlayerName(giveid),"Trusted",-1);
 	   			#else
-				dUserSetINT(PlayerName(giveid)).("Trusted",-1);							   // Remove from Trusted
+				yUserSetINT(PlayerName(giveid)).("Trusted",-1);							   // Remove from Trusted
 				#endif
 				return KickEx(giveid,6);
 	   		}
@@ -5693,7 +5693,7 @@ COMMAND:setadmin(playerid,params[]){
 			#if defined MYSQL
 			gSQL_SetUserVarAsInteger(PlayerName(giveid),"AdminLevel",PlayerInfo[giveid][AdminLevel]);
 			#else
-			dUserSetINT(PlayerName(giveid)).("AdminLevel",PlayerInfo[giveid][AdminLevel]);
+			yUserSetINT(PlayerName(giveid)).("AdminLevel",PlayerInfo[giveid][AdminLevel]);
 			#endif
 			if(IsPlayerAdmin(playerid) && giveid==playerid) { //Rcon Adminds can set Admin lvl,I think its handy
 				CreateClientLanguageMessages("txt_setadmin5",adminlvl);
@@ -7164,8 +7164,8 @@ COMMAND:unban(playerid,params[]) {
 		    format(sIP,sizeof(sIP),gSQL_GetUserVar(params,"IP"));
 			bUserName=true;
 		#else
-		if (udb_Exists(params)) {
-		    format(sIP,sizeof(sIP),dUser(params).("IP"));
+		if (y_files_Exists(params)) {
+		    format(sIP,sizeof(sIP),yUser(params).("IP"));
 			bUserName=true;
 		#endif
 		}
@@ -8062,14 +8062,14 @@ stock LoadConfig() {
 					#if defined MYSQL
 					if(gSQL_ExistUser(ThePlayer)) {
 					#else
-					if(udb_Exists(ThePlayer)) {
+					if(y_files_Exists(ThePlayer)) {
 					#endif
 					    IP[0]='\0';
 					    s[0]='\0';
 						#if defined MYSQL
 					    strcat(s,gSQL_GetUserVar(ThePlayer,"IP"),sizeof(s));
 						#else
-					    strcat(s,dUser(ThePlayer).("IP"),sizeof(s));
+					    strcat(s,yUser(ThePlayer).("IP"),sizeof(s));
 					    #endif
 			            GetPlayerIp(i,IP,sizeof(IP));
 						if((!strcmp(IP,s,true,sizeof(IP))) && (s[0])) {
@@ -8173,20 +8173,20 @@ public SaveProfiles() {
 			#if defined MYSQL
 	            gSQL_UpdateUser(ThePlayer,i);
 			#else
-				dUserSetINT(ThePlayer).("AdminLevel",PlayerInfo[i][AdminLevel]);
-				dUserSetINT(ThePlayer).("Money",GetPlayerMoney(i));
-				dUserSetINT(ThePlayer).("Score",GetPlayerScore(i));
+				yUserSetINT(ThePlayer).("AdminLevel",PlayerInfo[i][AdminLevel]);
+				yUserSetINT(ThePlayer).("Money",GetPlayerMoney(i));
+				yUserSetINT(ThePlayer).("Score",GetPlayerScore(i));
 				#if defined EXTRA_COMMANDS
-				dUserSetINT(ThePlayer).("BankMoney",PlayerInfo[i][BankMoney]);
+				yUserSetINT(ThePlayer).("BankMoney",PlayerInfo[i][BankMoney]);
 				#endif
-				dUserSet(ThePlayer).("Language",GetShortLanguageName(GetPlayerLanguageID(i)));
-				dUserSetINT(ThePlayer).("Kills",PlayerInfo[i][Kills]);
-				dUserSetINT(ThePlayer).("Deaths",PlayerInfo[i][Deaths]);
-				dUserSetINT(ThePlayer).("TimesSpawned",PlayerInfo[i][SpawnCount]);
+				yUserSet(ThePlayer).("Language",GetShortLanguageName(GetPlayerLanguageID(i)));
+				yUserSetINT(ThePlayer).("Kills",PlayerInfo[i][Kills]);
+				yUserSetINT(ThePlayer).("Deaths",PlayerInfo[i][Deaths]);
+				yUserSetINT(ThePlayer).("TimesSpawned",PlayerInfo[i][SpawnCount]);
 				#if defined SAVE_POS
-				dUserSetFLOAT(ThePlayer).("X",X);
-				dUserSetFLOAT(ThePlayer).("Y",Y);
-				dUserSetFLOAT(ThePlayer).("Z",Z);
+				yUserSetFLOAT(ThePlayer).("X",X);
+				yUserSetFLOAT(ThePlayer).("Y",Y);
+				yUserSetFLOAT(ThePlayer).("Z",Z);
 				#endif
 			#endif
 		}
@@ -8798,8 +8798,8 @@ public GetProfilEntry(playerid,entry[]) {
 	new
 		ThePlayer[MAX_PLAYER_NAME];
 	GetPlayerName(playerid,ThePlayer,sizeof(ThePlayer));
-	if(udb_Exists(ThePlayer)) {
-		return dUserINT(ThePlayer).(entry);
+	if(y_files_Exists(ThePlayer)) {
+		return yUserINT(ThePlayer).(entry);
 	}
 	return 0;
 }
@@ -8807,8 +8807,8 @@ public SetProfilEntry(playerid,entry[],digit) {
 	new
 		ThePlayer[MAX_PLAYER_NAME];
 	GetPlayerName(playerid,ThePlayer,sizeof(ThePlayer));
-	if(udb_Exists(ThePlayer)) {
-		dUserSetINT(ThePlayer).(entry,digit);
+	if(y_files_Exists(ThePlayer)) {
+		yUserSetINT(ThePlayer).(entry,digit);
 		return 1;
 	}
 	return 0;
