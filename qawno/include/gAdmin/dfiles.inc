@@ -39,7 +39,7 @@
  *           newname
  *  @requires WINDOWS (because fcopy does)
  */
-stock frename(oldname[],newname[]) {
+stock _frename(oldname[],newname[]) {
     if (!fexist(oldname)) return false;
     fremove(newname);
     if (!DINI_fcopytextfile(oldname,newname)) return false;
@@ -527,7 +527,7 @@ stock udb_RenameUser(nickname[],newnick[]) {
 		newfname[MAX_STRING_UDB];
 	format(oldfname,sizeof(oldfname),"gAdmin User/%s.txt",udb_encode(nickname));
 	format(newfname,sizeof(newfname),"gAdmin User/%s.txt",udb_encode(newnick));
-	return frename(oldfname,newfname);
+	return _frename(oldfname,newfname);
 }
 
 
