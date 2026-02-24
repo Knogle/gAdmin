@@ -103,13 +103,13 @@ new const aWeaponNames[][] = {
 	{"Fake Pistol"} // 47
 };
 //-------------------------------------------------------------------------------
-stock CheckFileEntry(playerid,file[],params[]) {
+stock CheckFileEntry(playerid,const file[],params[]) {
 	new
 		File:cFile=fopen(file, io_read);
 	if(!cFile) return 0;
 	new
 		tmp[128];
-   	StripNewLine(params,600); // sz
+   	StripNewLine(params); // sz
 	while (fread(cFile,tmp,sizeof(tmp))){
       	StripNewLine(tmp);
       	if(!tmp[0]) continue;
@@ -126,7 +126,7 @@ stock CheckFileEntry(playerid,file[],params[]) {
 	return 0;
 }
 //-------------------------------------------------------------------------------
-stock WriteLog(file[],text[])
+stock WriteLog(const file[],const text[])
 {
 	new
 		File:cFile=fopen(file, io_append);
@@ -155,7 +155,7 @@ stock WriteIPBan(playerid,id) {
 		return 0;
 	}
     format(b,sizeof(b),"%s\r\n",IP);
-    fwrite(ipban,b,600); //
+    fwrite(ipban,b); //
     fclose(ipban);
     WriteLog(clearlog,"* Added Range IP Ban");
 	//
@@ -167,7 +167,7 @@ stock WriteIPBan(playerid,id) {
     return 1;
 }
 //-------------------------------------------------------------------------------
-stock ReadIPBans(playerid, ip[16]) {
+stock ReadIPBans(playerid, const ip[16]) {
 	if(IsPlayerConnected(playerid)) {
 		new
 			ThePlayer[MAX_PLAYER_NAME];
@@ -271,7 +271,7 @@ stock WriteClanBlacklist(playerid,params[]) {
     return 1;
 }
 //-------------------------------------------------------------------------------
-stock ReadWhiteList(playerid, name[MAX_PLAYER_NAME]) {
+stock ReadWhiteList(playerid, const name[MAX_PLAYER_NAME]) {
 	if(IsPlayerConnected(playerid)) {
 		SendClientMessage(playerid,COLOR_LIGHTBLUE,"*** Reading Whitelist...");
 		/* Basic Check */
@@ -316,7 +316,7 @@ stock WriteWhiteList(playerid,params[]) { //params,id or name
  	return 1;
 }
 //-------------------------------------------------------------------------------
-stock ReadClanBlacklist(playerid, name[MAX_PLAYER_NAME]) {
+stock ReadClanBlacklist(playerid, const name[MAX_PLAYER_NAME]) {
 	if(IsPlayerConnected(playerid)) {
 		SendClientMessage(playerid,COLOR_LIGHTBLUE,"*** Reading ClanBlacklist...");
 		/* Basic Check */
@@ -407,7 +407,7 @@ stock WriteAliasListEntry(playerid, name[MAX_PLAYER_NAME] , ip[16]) {
 			fclose(cFile);
 			fclose(bFile);
 			DINI_fcopytextfile(AliasList_Buf,AliasList);
-			fremove(AliasList_Buf,600); // Testcase
+			fremove(AliasList_Buf); // Testcase
 			return 1;
 		}
 		else if(ToDo==2) {
@@ -469,7 +469,7 @@ stock GetAliasEntry(ip[16], name[MAX_PLAYER_NAME]) {
     return finished;
 }
 //-------------------------------------------------------------------------------
-stock CountChar(string[],identifier) {
+stock CountChar(const string[],identifier) {
 	new
 	    entrys=0,
 	    c;
@@ -481,7 +481,7 @@ stock CountChar(string[],identifier) {
 	return entrys;
 }
 //-------------------------------------------------------------------------------
-stock chrfind(needle, haystack[], start = 0)
+stock chrfind(needle, const haystack[], start = 0)
 {
 	while (haystack[start]) if (haystack[start++] == needle) return start - 1;
 	return -1;
@@ -1054,7 +1054,7 @@ stock IsValidSkin(skinid) //by Simon
 	return true;
 }
 //-------------------------------------------------------------------------------
-stock IP2RootIP(ip[16], blocks) { //breadfish
+stock IP2RootIP(const ip[16], blocks) { //breadfish
 	new
 		rootend,
 		i,
@@ -1334,7 +1334,7 @@ stock HexToRGBA(colour, &red, &green, &blue, &a) //By Betamaster
 stock VehicleDriverID(vehicleid) //By Jan "DracoBlue" Schütze
 {
 	foreach(i) {
-   		if((GetPlayerVehicleID(i)==vehicleid)&&(GetPlayerState(i)==2))  return i;
+   		if((GetPlayerVehicleID(i)==vehicleid)&&(GetPlayerState(i)==PLAYER_STATE_DRIVER))  return i;
 	}
 	return -1;
 }
@@ -1348,7 +1348,7 @@ stock IsVehicleInUse(vehicleid) { //By Sacky
 }
 //-------------------------------------------------------------------------------
 // Dracoblue
-stock PlayerID(partofname[]) {
+stock PlayerID(const partofname[]) {
 	new
 		ThePlayer[MAX_PLAYER_NAME];
 	foreachEx(i) {
@@ -1384,7 +1384,7 @@ stock StripNewLine(str[]) //ysi_misc.own
 	while (l-- && str[l] <= ' ') str[l] = '\0';
 }
 //-------------------------------------------------------------------------------
-stock isNumeric(str[]) //ysi_misc.own
+stock isNumeric(const str[]) //ysi_misc.own
 {
 	new
 		ch,
@@ -1398,7 +1398,7 @@ stock SetPlayerMoney(playerid,money) {
     return GivePlayerMoney(playerid,money);
 }
 //-------------------------------------------------------------------------------
-stock DINI_fcopytextfile(oldname[],newname[]) {
+stock DINI_fcopytextfile(const oldname[],const newname[]) {
 	new
 		File:ohnd,
 		File:nhnd;
@@ -1431,7 +1431,7 @@ Function:
 	sscanf
 Params:
 	string[] - String to extract parameters from.
-	format[] - Parameter types to get.
+	fmt[] - Parameter types to get.
 	{Float,_}:... - Data return variables.
 Return:
 	0 - Successful, not 0 - fail.
@@ -1460,15 +1460,20 @@ Notes:
 	optioanlly specified one in the format string.
 -*----------------------------------------------------------------------------*/
 
-stock sscanf(string[], format[], {Float,_}:...)
+stock sscanf(const inputString[], const inputFormat[], {Float,_}:...)
 {
+	new
+		string[MAX_STRING],
+		fmt[MAX_STRING];
+	strcpy(string,inputString,sizeof(string));
+	strcpy(fmt,inputFormat,sizeof(fmt));
 	#if defined isnull
 		if (isnull(string))
 	#else
 		if (string[0] == 0 || (string[0] == 1 && string[1] == 0))
 	#endif
 		{
-			return format[0];
+			return fmt[0];
 		}
 	#pragma tabsize 4
 	new
@@ -1483,7 +1488,7 @@ stock sscanf(string[], format[], {Float,_}:...)
 	}
 	while (paramPos < paramCount && string[stringPos])
 	{
-		switch (format[formatPos++])
+		switch (fmt[formatPos++])
 		{
 			case '\0':
 			{
@@ -1568,7 +1573,7 @@ stock sscanf(string[], format[], {Float,_}:...)
 			}
 			case 'p':
 			{
-				delim = format[formatPos++];
+				delim = fmt[formatPos++];
 				continue;
 			}
 			case '\'':
@@ -1576,21 +1581,21 @@ stock sscanf(string[], format[], {Float,_}:...)
 				new
 					end = formatPos - 1,
 					ch;
-				while ((ch = format[++end]) && ch != '\'') {}
+				while ((ch = fmt[++end]) && ch != '\'') {}
 				if (!ch)
 				{
 					return -1;
 				}
-				format[end] = '\0';
-				if ((ch = strfind(string, format[formatPos], false, stringPos)) == -1)
+				fmt[end] = '\0';
+				if ((ch = strfind(string, fmt[formatPos], false, stringPos)) == -1)
 				{
-					if (format[end + 1])
+					if (fmt[end + 1])
 					{
 						return -1;
 					}
 					return 0;
 				}
-				format[end] = '\'';
+				fmt[end] = '\'';
 				stringPos = ch + (end - formatPos);
 				formatPos = end + 1;
 			}
@@ -1657,7 +1662,7 @@ stock sscanf(string[], format[], {Float,_}:...)
 				new
 					i = 0,
 					ch;
-				if (format[formatPos])
+				if (fmt[formatPos])
 				{
 					while ((ch = string[stringPos++]) && ch != delim)
 					{
@@ -1695,11 +1700,11 @@ stock sscanf(string[], format[], {Float,_}:...)
 	}
 	do
 	{
-		if ((delim = format[formatPos++]) > ' ')
+		if ((delim = fmt[formatPos++]) > ' ')
 		{
 			if (delim == '\'')
 			{
-				while ((delim = format[formatPos++]) && delim != '\'') {}
+				while ((delim = fmt[formatPos++]) && delim != '\'') {}
 			}
 			else if (delim != 'z')
 			{
@@ -1758,7 +1763,7 @@ stock GetDateTilBanned(bandays,&day,&month,&year) {
 	}
 	return 1;
 }
-stock strcpy(dest[], source[], max, len = -1)
+stock strcpy(dest[], const source[], max, len = -1)
 {
 	new
 		i;
@@ -1766,7 +1771,7 @@ stock strcpy(dest[], source[], max, len = -1)
 	while (i < len && i < max && (dest[i] = source[i])) i++;
 	if (i == len) dest[i == max ? i - 1 : i] = '\0';
 }
-stock IsIP(string[]) {
+stock IsIP(const string[]) {
 	// Very basic IP check X__o
 	
 	new

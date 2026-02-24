@@ -39,7 +39,7 @@
  *           newname
  *  @requires WINDOWS (because fcopy does)
  */
-stock _frename(oldname[],newname[]) {
+stock _frename(const oldname[],const newname[]) {
     if (!fexist(oldname)) return false;
     fremove(newname);
     if (!DINI_fcopytextfile(oldname,newname)) return false;
@@ -58,7 +58,7 @@ stock _frename(oldname[],newname[]) {
  *           source
  *           count
  */
-stock set(dest[],source[]) {
+stock set(dest[],const source[]) {
 	new
 		count = strlen(source),
 		i;
@@ -71,7 +71,7 @@ stock set(dest[],source[]) {
  *  Returns a hashed value in adler32 as int
  *  @param   buf
  */
-stock num_hash(buf[])
+stock num_hash(const buf[])
  {
 	new length=strlen(buf);
     new s1 = 1;
@@ -88,7 +88,7 @@ stock num_hash(buf[])
  *  Returns a hashed value in adler32 as string
  *  @param   buf
  */
-stock hash(str2[]) {
+stock hash(const str2[]) {
    new tmpdasdsa[MAX_STRING];
    valstr(tmpdasdsa,num_hash(str2));
    return tmpdasdsa;
@@ -98,7 +98,7 @@ stock hash(str2[]) {
  http://forum.sa-mp.com/index.php?topic=110557.0
 */
 
-stock strreplace(sSearch[], sReplace[], const sSubject[], &iCount = 0)
+stock strreplace(const sSearch[], const sReplace[], const sSubject[], &iCount = 0)
 {
 	new
 		iLengthTarget = strlen(sSearch),
@@ -169,7 +169,7 @@ stock dini_Remove(filename[]) {
 	return fremove(filename);
 }
 
-stock dini_Create(filename[]) {
+stock dini_Create(const filename[]) {
 	if (fexist(filename)) return false;
 	new File:fhnd;
 	fhnd=fopen(filename,io_write);
@@ -180,7 +180,7 @@ stock dini_Create(filename[]) {
 	return false;
 }
 
-stock dini_Set(filename[],key[],value[]) {
+stock dini_Set(const filename[],const key[],const value[]) {
 	// If we have no key, it can't be set
 	// we also have no chance to set the value, if all together is bigger then the max string
 	new key_length = strlen(key);
@@ -239,38 +239,38 @@ stock dini_Set(filename[],key[],value[]) {
 }
 
 
-stock dini_IntSet(filename[],key[],value) {
+stock dini_IntSet(const filename[],const key[],value) {
    new valuestring[DINI_MAX_STRING];
    format(valuestring,DINI_MAX_STRING,"%d",value);
    return dini_Set(filename,key,valuestring);
 }
 
-stock dini_Int(filename[],key[]) {
+stock dini_Int(const filename[],const key[]) {
    return strval(dini_Get(filename,key));
 }
 
-stock dini_FloatSet(filename[],key[],Float:value) {
+stock dini_FloatSet(const filename[],const key[],Float:value) {
    new valuestring[DINI_MAX_STRING];
    format(valuestring,DINI_MAX_STRING,"%f",value);
    return dini_Set(filename,key,valuestring);
 }
 
-stock Float:dini_Float(filename[],key[]) {
+stock Float:dini_Float(const filename[],const key[]) {
    return floatstr(dini_Get(filename,key));
 }
 
-stock  bool:dini_Bool(filename[],key[]) {
+stock bool:dini_Bool(const filename[],const key[]) {
 	return bool:strval(dini_Get(filename,key));
 }
 
-stock dini_BoolSet(filename[],key[],value) {
+stock dini_BoolSet(const filename[],const key[],value) {
 	if (value) {
 		return dini_Set(filename,key,"1");
 	}
 	return dini_Set(filename,key,"0");
 }
 
-stock dini_Unset(filename[],key[]) {
+stock dini_Unset(const filename[],const key[]) {
 	// If we have no key, it can't be set
 	// we also have no chance to unset the key, if all together is bigger then the max string
 	new key_length = strlen(key);
@@ -318,7 +318,7 @@ stock dini_Unset(filename[],key[]) {
 	return false;
 }
 
-stock dini_Get(filename[],key[]) {
+stock dini_Get(const filename[],const key[]) {
 	new tmpres[DINI_MAX_STRING];
 
 	new key_length = strlen(key);
@@ -345,7 +345,7 @@ stock dini_Get(filename[],key[]) {
 }
 
 
-stock dini_Isset(filename[],key[]) {
+stock dini_Isset(const filename[],const key[]) {
 	new key_length = strlen(key);
 	if (key_length==0 || key_length+2>DINI_MAX_STRING) return false;
 
@@ -403,7 +403,7 @@ stock dini_Isset(filename[],key[]) {
 #define dUserSetFLOAT(%1).( udb_UserSetFloat(%1,
 #define dUserFLOAT(%1).( udb_UserFloat(%1,
 
-stock udb_encode(nickname[]) {
+stock udb_encode(const nickname[]) {
   new tmp[MAX_STRING];
   set(tmp,nickname);
   tmp=strreplace("_","_00",tmp);
@@ -428,7 +428,7 @@ stock udb_encode(nickname[]) {
   return tmp;
 }
 
-stock udb_decode(nickname[]) {
+stock udb_decode(const nickname[]) {
   new tmp[MAX_STRING];
   set(tmp,nickname);
   tmp=strreplace("_01",";",tmp);
@@ -454,57 +454,57 @@ stock udb_decode(nickname[]) {
 }
 
 
-stock udb_Exists(nickname[]) {
+stock udb_Exists(const nickname[]) {
 	new tmp[MAX_STRING_UDB];
 	format(tmp,sizeof(tmp),"gAdmin User/%s.txt",udb_encode(nickname));
 	return fexist(tmp);
 }
 
 
-stock udb_Remove(nickname[]) {
+stock udb_Remove(const nickname[]) {
 	new tmp[MAX_STRING_UDB];
 	format(tmp,sizeof(tmp),"gAdmin User/%s.txt",udb_encode(nickname));
 	return dini_Remove(tmp);
 }
 
-stock udb_UserSetInt(nickname[],key[],value) {
+stock udb_UserSetInt(const nickname[],const key[],value) {
 	new fname[MAX_STRING_UDB];
 	format(fname,sizeof(fname),"gAdmin User/%s.txt",udb_encode(nickname));
 	return dini_IntSet(fname,key,value);
 }
 
-stock udb_UserSetFloat(nickname[],key[],Float:value) {
+stock udb_UserSetFloat(const nickname[],const key[],Float:value) {
 	new fname[MAX_STRING_UDB];
 	format(fname,sizeof(fname),"gAdmin User/%s.txt",udb_encode(nickname));
 	return dini_FloatSet(fname,key,value);
 }
 
-stock udb_UserSet(nickname[],key[],value[]) {
+stock udb_UserSet(const nickname[],const key[],const value[]) {
 	new fname[MAX_STRING_UDB];
 	format(fname,sizeof(fname),"gAdmin User/%s.txt",udb_encode(nickname));
 	return dini_Set(fname,key,value);
 }
 
-stock udb_User(nickname[],key[]) {
+stock udb_User(const nickname[],const key[]) {
 	new fname[MAX_STRING_UDB];
 	format(fname,sizeof(fname),"gAdmin User/%s.txt",udb_encode(nickname));
 	format(fname,sizeof(fname),dini_Get(fname,key));
 	return fname;
 }
 
-stock Float:udb_UserFloat(nickname[],key[]) {
+stock Float:udb_UserFloat(const nickname[],const key[]) {
 	new fname[MAX_STRING_UDB];
 	format(fname,sizeof(fname),"gAdmin User/%s.txt",udb_encode(nickname));
 	return dini_Float(fname,key);
 }
 
-stock udb_UserInt(nickname[],key[]) {
+stock udb_UserInt(const nickname[],const key[]) {
 	new fname[MAX_STRING_UDB];
 	format(fname,sizeof(fname),"gAdmin User/%s.txt",udb_encode(nickname));
 	return dini_Int(fname,key);
 }
 
-stock udb_CheckLogin(nickname[],pwd[]) {
+stock udb_CheckLogin(const nickname[],const pwd[]) {
 	new fname[MAX_STRING_UDB];
 	format(fname,sizeof(fname),"gAdmin User/%s.txt",udb_encode(nickname));
 	if (udb_UserInt(nickname,"password_hash")==num_hash(pwd)) return true;
@@ -512,7 +512,7 @@ stock udb_CheckLogin(nickname[],pwd[]) {
 }
 
 
-stock udb_Create(nickname[],pwd[]) {
+stock udb_Create(const nickname[],const pwd[]) {
 	if (udb_Exists(nickname)) return false;
 	new fname[MAX_STRING_UDB];
 	format(fname,sizeof(fname),"gAdmin User/%s.txt",udb_encode(nickname));
@@ -521,7 +521,7 @@ stock udb_Create(nickname[],pwd[]) {
 	return true;
 }
 
-stock udb_RenameUser(nickname[],newnick[]) {
+stock udb_RenameUser(const nickname[],const newnick[]) {
 	new
 		oldfname[MAX_STRING_UDB],
 		newfname[MAX_STRING_UDB];

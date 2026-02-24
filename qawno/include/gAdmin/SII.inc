@@ -153,8 +153,9 @@ stock INI_ReadString(dest[], const key[], maxlength = sizeof(dest))
 }
 
 
-stock INI_ReadInt(const key[])
+stock INI_ReadInt(const key[], _legacy_maxlen = 0)
 {
+	#pragma unused _legacy_maxlen
 	new dest[11];
 	if (INI_ReadString(dest, key)) return strval(dest);
 	return false;
@@ -175,8 +176,9 @@ stock bool:INI_ReadBool(const key[])
 	return false;
 }
 
-stock INI_WriteString(const key[], const value[])
+stock INI_WriteString(const key[], const value[], _legacy_maxlen = 0)
 {
+	#pragma unused _legacy_maxlen
 	if ((!gFile[E_OPEN]) || (!key[0]) || (key[0] == ';') || (strfind(key, "=", false) != -1)) return false;
 	new ln = -1;
 	while (((ln + 1) < INI_MAX_LINES) && (gCache[ln + 1][E_VALUE][0]))
@@ -200,8 +202,9 @@ stock INI_WriteString(const key[], const value[])
 }
 
 
-stock INI_WriteInt(const key[], value)
+stock INI_WriteInt(const key[], value, _legacy_maxlen = 0)
 {
+	#pragma unused _legacy_maxlen
 	new dest[11];
 	format(dest, sizeof(dest), "%i", value);
 	return INI_WriteString(key, dest);

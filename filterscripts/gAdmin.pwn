@@ -127,7 +127,7 @@ new g_Max_Players;
 
 /* Userbuild	-	Here you can decide what system to really need or not */
 
-#define SPECTATE_MODE   // - Comment out if you dont need inbuild Spectate Mode
+#define GADMIN_SPECTATE_MODE   // - Comment out if you dont need inbuild Spectate Mode
 #define DISPLAY_MODE    // - Comment out if you dont need DisplayMode showing Area,Speed or both while in a vehicle
 #define DISPLAY_MODE_TD // - Comment out if you want to have DisplayMode using GametextForPlayer,instead of TextDraw
 #define LOCK_MODE       // - Comment out if you dont need Lock system,providing some extra admincommands too
@@ -190,7 +190,7 @@ new g_Max_Players;
 #endif
 
 
-#if defined SPECTATE_MODE
+#if defined GADMIN_SPECTATE_MODE
 	#define FREE_SPEC_ID INVALID_PLAYER_ID
 #endif
 
@@ -215,7 +215,7 @@ new g_Max_Players;
 #define irc_gAdmin
 #endif
 
-#include <a_samp>
+#include <open.mp>
 #if defined MYSQL
 	#include <gAdmin/gSQL_StrickenKid>
 #else
@@ -273,9 +273,7 @@ forward SetProfilEntry(playerid,entry[],digit);
 #define LOGIN_NORMAL 1
 #define LOGIN_AUTOIP 2
 
-#if defined _samp03_
 forward OnPlayerPrivmsg(playerid, recieverid, text[]);
-#endif
 
 /* These functions might be called using CallRemoteFunction() */
 
@@ -386,7 +384,7 @@ enum e_Level_Info {  //Levelvars
 	lnight,
 	lmorning,
 	lday,
-	#if defined SPECTATE_MODE
+	#if defined GADMIN_SPECTATE_MODE
 	lspec,
 	#endif
 	lfuckup,
@@ -501,7 +499,7 @@ new g_sCommandText[sizeof(g_Level)-2][] = {
 	{"/night"},
 	{"/morning"},
 	{"/day"},
-	#if defined SPECTATE_MODE
+	#if defined GADMIN_SPECTATE_MODE
 	{"/spec"},
 	#endif
 	{"/fuckup"},
@@ -772,7 +770,7 @@ enum e_Player_Info {
 	Deaths,
 	Kills,
 	WrongRCON,
-	#if defined SPECTATE_MODE
+	#if defined GADMIN_SPECTATE_MODE
 	Spec,
 	#endif
 	LameCounter,
@@ -1056,7 +1054,7 @@ public OnFilterScriptInit()
 	format(s,sizeof(s),GetLanguageString(ServerLanguage(),"txt_activated"),Month,Day,Year);
 	WriteLog(clearlog,s);
 	#if defined SAVE_ADDITION
-	SetTimer("SaveProfiles",SAVE_TIME,1);
+	SetTimer("SaveProfiles",SAVE_TIME,true);
 	#endif
 	SendClientMessageToAll(COLOR_ORANGE,"** gAdmin Filterscript: On");
 	/*
@@ -1165,7 +1163,7 @@ public OnPlayerConnect(playerid)
 	#endif
 	PlayerInfo[playerid][LameCounter]=0;
 	PlayerInfo[playerid][SpawnCount]=0;
-	#if defined SPECTATE_MODE
+	#if defined GADMIN_SPECTATE_MODE
 	PlayerInfo[playerid][Spec]=FREE_SPEC_ID;
 	#endif
 	PlayerInfo[playerid][BadWordCount]=0;
@@ -1338,17 +1336,17 @@ public OnPlayerDisconnect(playerid, reason)
 	    format(s,sizeof(s),"5%s",s);
  		IRC_Say(EchoBot, EchoChan,s);
 	#endif
-	#if defined SPECTATE_MODE
+	#if defined GADMIN_SPECTATE_MODE
 	if(PlayerInfo[playerid][Spec]!=FREE_SPEC_ID) {
 		ResetSpectateInfo(playerid);
-		TogglePlayerSpectating(playerid,0);
+		TogglePlayerSpectating(playerid,false);
 		PlayerInfo[playerid][Spec] = FREE_SPEC_ID;
 	}
 	if(IsPlayerFlag(playerid,PLAYER_FLAG_SPECTATED)) {
 	    DeletePlayerFlag(playerid,PLAYER_FLAG_SPECTATED);
 		foreachEx(i) {
 			if(PlayerInfo[i][Spec]==playerid) {
-				TogglePlayerSpectating(i, 0);
+				TogglePlayerSpectating(i,false);
 				PlayerInfo[i][Spec]=FREE_SPEC_ID;
 			}
 		}
@@ -1445,9 +1443,9 @@ public OnPlayerSpawn(playerid)
 				#else
 				if(udb_Exists(PlayerName(playerid))) {
 				#endif
-				    KillTimer(PlayerInfo[playerid][tLogin],600); // If there might be still a timer,destroy it!
+				    KillTimer(PlayerInfo[playerid][tLogin]); // If there might be still a timer,destroy it!
 					SendClientLanguageMessage(playerid,COLOR_ORANGE,"txt_LoginSpawn",g_MAX_LOGIN_TIME);
-					PlayerInfo[playerid][tLogin]=SetTimerEx("Login",g_MAX_LOGIN_TIME*1000,0,"i",playerid);
+					PlayerInfo[playerid][tLogin]=SetTimerEx("Login",g_MAX_LOGIN_TIME*1000,false,"i",playerid);
 					AddPlayerFlag(playerid,PLAYER_FLAG_LOGINCHECK);
 					return 1;
 				}
@@ -1893,7 +1891,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 	dcmd(night,5,cmdtext);
 	dcmd(morning,7,cmdtext);
 	dcmd(day,3,cmdtext);
-	#if defined SPECTATE_MODE
+	#if defined GADMIN_SPECTATE_MODE
 	dcmd(spec,4,cmdtext);
 	dcmd(specoff,7,cmdtext);
 	#endif
@@ -2187,61 +2185,61 @@ public OnPlayerSelectedMenuRow(playerid, row)
 		switch(row) {
 			case 0:{
 				SendClientMessage(playerid,COLOR_ORANGE,"* ImportTuner : Import Red [-500 $]");
-				ChangeVehicleColor(GetPlayerVehicleID(playerid),3,1);
+				ChangeVehicleColours(GetPlayerVehicleID(playerid),3,1);
 				GivePlayerMoney(playerid,-500);
 				PlayerPlaySound(playerid,1133,0.0,0.0,0.0);
 			}
 			case 1:{
 				SendClientMessage(playerid,COLOR_ORANGE,"* ImportTuner : Import White [-500 $]");
-				ChangeVehicleColor(GetPlayerVehicleID(playerid),1,1);
+				ChangeVehicleColours(GetPlayerVehicleID(playerid),1,1);
 				GivePlayerMoney(playerid,-500);
 				PlayerPlaySound(playerid,1133,0.0,0.0,0.0);
 			}
 			case 2:{
 				SendClientMessage(playerid,COLOR_ORANGE,"* ImportTuner : Import Blue [-500 $]");
-				ChangeVehicleColor(GetPlayerVehicleID(playerid),7,1);
+				ChangeVehicleColours(GetPlayerVehicleID(playerid),7,1);
 				GivePlayerMoney(playerid,-500);
 				PlayerPlaySound(playerid,1133,0.0,0.0,0.0);
 			}
 			case 3:{
 				SendClientMessage(playerid,COLOR_ORANGE,"* ImportTuner : Import Yellow [-500 $]");
-				ChangeVehicleColor(GetPlayerVehicleID(playerid),6,1);
+				ChangeVehicleColours(GetPlayerVehicleID(playerid),6,1);
 				GivePlayerMoney(playerid,-500);
 				PlayerPlaySound(playerid,1133,0.0,0.0,0.0);
 			}
 			case 4:{
 				SendClientMessage(playerid,COLOR_ORANGE,"* ImportTuner : Import Brown [-500 $]");
-				ChangeVehicleColor(GetPlayerVehicleID(playerid),61,1);
+				ChangeVehicleColours(GetPlayerVehicleID(playerid),61,1);
 				GivePlayerMoney(playerid,-500);
 				PlayerPlaySound(playerid,1133,0.0,0.0,0.0);
 			}
 			case 5:{
 				SendClientMessage(playerid,COLOR_ORANGE,"* ImportTuner : Import Grey [-500 $]");
-				ChangeVehicleColor(GetPlayerVehicleID(playerid),15,1);
+				ChangeVehicleColours(GetPlayerVehicleID(playerid),15,1);
 				GivePlayerMoney(playerid,-500);
 				PlayerPlaySound(playerid,1133,0.0,0.0,0.0);
 			}
 			case 6:{
 				SendClientMessage(playerid,COLOR_ORANGE,"* ImportTuner : Import Black [-500 $]");
-				ChangeVehicleColor(GetPlayerVehicleID(playerid),0,1);
+				ChangeVehicleColours(GetPlayerVehicleID(playerid),0,1);
 				GivePlayerMoney(playerid,-500);
 				PlayerPlaySound(playerid,1133,0.0,0.0,0.0);
 			}
 			case 7:{
 				SendClientMessage(playerid,COLOR_ORANGE,"* ImportTuner : Import Green [-500 $]");
-				ChangeVehicleColor(GetPlayerVehicleID(playerid),16,1);
+				ChangeVehicleColours(GetPlayerVehicleID(playerid),16,1);
 				GivePlayerMoney(playerid,-500);
 				PlayerPlaySound(playerid,1133,0.0,0.0,0.0);
 			}
 			case 8:{
 				SendClientMessage(playerid,COLOR_ORANGE,"* ImportTuner : Import Pink [-500 $]");
-				ChangeVehicleColor(GetPlayerVehicleID(playerid),126,1);
+				ChangeVehicleColours(GetPlayerVehicleID(playerid),126,1);
 				GivePlayerMoney(playerid,-500);
 				PlayerPlaySound(playerid,1133,0.0,0.0,0.0);
 			}
 			case 9:{
 				SendClientMessage(playerid,COLOR_ORANGE,"* ImportTuner : Import Lightblue [-500 $]");
-				ChangeVehicleColor(GetPlayerVehicleID(playerid),32,1);
+				ChangeVehicleColours(GetPlayerVehicleID(playerid),32,1);
 				GivePlayerMoney(playerid,-500);
 				PlayerPlaySound(playerid,1133,0.0,0.0,0.0);
 			}
@@ -2294,13 +2292,13 @@ public OnPlayerSelectedMenuRow(playerid, row)
 		PlayerInfo[playerid][ExMenu]=EX_MENU_WEAPON;
  		switch(row) {
 			case 0:	{
-				GivePlayerWeapon(playerid,22,50);
+				GivePlayerWeapon(playerid,WEAPON:22,50);
 			}
 			case 1: {
-				GivePlayerWeapon(playerid,23,50);
+				GivePlayerWeapon(playerid,WEAPON:23,50);
 			}
 			case 2: {
-				GivePlayerWeapon(playerid,24,50);
+				GivePlayerWeapon(playerid,WEAPON:24,50);
 			}
 			default: {
 				print("Fail");
@@ -2312,11 +2310,11 @@ public OnPlayerSelectedMenuRow(playerid, row)
 		PlayerInfo[playerid][ExMenu]=EX_MENU_WEAPON;
 		switch(row) {
 			case 0:	{
-				GivePlayerWeapon(playerid,32,50);
+				GivePlayerWeapon(playerid,WEAPON:32,50);
 
 			}
 			case 1: {
-				GivePlayerWeapon(playerid,28,50);
+				GivePlayerWeapon(playerid,WEAPON:28,50);
 			}
 			default: {
 				print("Fail");
@@ -2328,13 +2326,13 @@ public OnPlayerSelectedMenuRow(playerid, row)
 		PlayerInfo[playerid][ExMenu]=EX_MENU_WEAPON;
 		switch(row) {
 			case 0:	{
-				GivePlayerWeapon(playerid,25,50);
+				GivePlayerWeapon(playerid,WEAPON:25,50);
 			}
 			case 1: {
-				GivePlayerWeapon(playerid,26,50);
+				GivePlayerWeapon(playerid,WEAPON:26,50);
 			}
 			case 2: {
-				GivePlayerWeapon(playerid,27,50);
+				GivePlayerWeapon(playerid,WEAPON:27,50);
 			}
 			default: {
 				print("Fail");
@@ -2349,19 +2347,19 @@ public OnPlayerSelectedMenuRow(playerid, row)
 				SetPlayerArmour(playerid,100.0);
 			}
 			case 1:	{
-				GivePlayerWeapon(playerid,46,1);
+				GivePlayerWeapon(playerid,WEAPON:46,1);
 			}
 			case 2:	{
-				GivePlayerWeapon(playerid,41,100);
+				GivePlayerWeapon(playerid,WEAPON:41,100);
 			}
 			case 3:	{
-				GivePlayerWeapon(playerid,43,50);
+				GivePlayerWeapon(playerid,WEAPON:43,50);
 			}
 			case 4:	{
-				GivePlayerWeapon(playerid,44,1);
+				GivePlayerWeapon(playerid,WEAPON:44,1);
 			}
 			case 5:	{
-				GivePlayerWeapon(playerid,45,1);
+				GivePlayerWeapon(playerid,WEAPON:45,1);
 			}
 			default: {
 				print("Fail");
@@ -2373,7 +2371,7 @@ public OnPlayerSelectedMenuRow(playerid, row)
 		PlayerInfo[playerid][ExMenu]=EX_MENU_WEAPON;
 		switch(row) {
 			case 0:	{
-				GivePlayerWeapon(playerid,29,50);
+				GivePlayerWeapon(playerid,WEAPON:29,50);
 			}
 			default: {
 				print("Fail");
@@ -2385,10 +2383,10 @@ public OnPlayerSelectedMenuRow(playerid, row)
 		PlayerInfo[playerid][ExMenu]=EX_MENU_WEAPON;
 		switch(row) {
 			case 0:	{
-				GivePlayerWeapon(playerid,30,50);
+				GivePlayerWeapon(playerid,WEAPON:30,50);
 			}
 			case 1:	{
-				GivePlayerWeapon(playerid,31,50);
+				GivePlayerWeapon(playerid,WEAPON:31,50);
 			}
 			default: {
 				print("Fail");
@@ -2400,11 +2398,11 @@ public OnPlayerSelectedMenuRow(playerid, row)
 		PlayerInfo[playerid][ExMenu]=EX_MENU_WEAPON;
 		switch(row) {
 			case 0:	{
-				GivePlayerWeapon(playerid,33,50);
+				GivePlayerWeapon(playerid,WEAPON:33,50);
 
 			}
 			case 1:	{
-				GivePlayerWeapon(playerid,34,50);
+				GivePlayerWeapon(playerid,WEAPON:34,50);
 			}
 			default: {
 				print("Fail");
@@ -2416,13 +2414,13 @@ public OnPlayerSelectedMenuRow(playerid, row)
 		PlayerInfo[playerid][ExMenu]=EX_MENU_WEAPON;
 		switch(row) {
 			case 0:	{
-				GivePlayerWeapon(playerid,16,15);
+				GivePlayerWeapon(playerid,WEAPON:16,15);
 			}
 			case 1:	{
-				GivePlayerWeapon(playerid,17,15);
+				GivePlayerWeapon(playerid,WEAPON:17,15);
 			}
 			case 2:	{
-				GivePlayerWeapon(playerid,18,15);
+				GivePlayerWeapon(playerid,WEAPON:18,15);
 			}
 			default: {
 				print("Fail");
@@ -2434,28 +2432,28 @@ public OnPlayerSelectedMenuRow(playerid, row)
 		PlayerInfo[playerid][ExMenu]=EX_MENU_WEAPON;
 		switch(row) {
 			case 0:	{
-				GivePlayerWeapon(playerid,5,1);
+				GivePlayerWeapon(playerid,WEAPON:5,1);
 			}
 			case 1:	{
-				GivePlayerWeapon(playerid,11,1);
+				GivePlayerWeapon(playerid,WEAPON:11,1);
 			}
 			case 2:	{
-				GivePlayerWeapon(playerid,9,1);
+				GivePlayerWeapon(playerid,WEAPON:9,1);
 			}
 			case 3:	{
-				GivePlayerWeapon(playerid,8,1);
+				GivePlayerWeapon(playerid,WEAPON:8,1);
 			}
 			case 4:	{
-				GivePlayerWeapon(playerid,7,1);
+				GivePlayerWeapon(playerid,WEAPON:7,1);
 			}
 			case 5:	{
-				GivePlayerWeapon(playerid,4,1);
+				GivePlayerWeapon(playerid,WEAPON:4,1);
 			}
 			case 6:	{
-				GivePlayerWeapon(playerid,3,1);
+				GivePlayerWeapon(playerid,WEAPON:3,1);
 			}
 			case 7:	{
-				GivePlayerWeapon(playerid,2,1);
+				GivePlayerWeapon(playerid,WEAPON:2,1);
 			}
 			default: {
 				print("Fail");
@@ -2467,13 +2465,13 @@ public OnPlayerSelectedMenuRow(playerid, row)
 		PlayerInfo[playerid][ExMenu]=EX_MENU_WEAPON;
 		switch(row) {
 			case 0:	{
-				GivePlayerWeapon(playerid,38,500);
+				GivePlayerWeapon(playerid,WEAPON:38,500);
 			}
 			case 1:	{
-				GivePlayerWeapon(playerid,35,20);
+				GivePlayerWeapon(playerid,WEAPON:35,20);
 			}
 			case 2:	{
-				GivePlayerWeapon(playerid,37,150);
+				GivePlayerWeapon(playerid,WEAPON:37,150);
 			}
 			default: {
 				print("Fail");
@@ -2820,24 +2818,24 @@ public OnPlayerExitedMenu(playerid)
 #endif
 public OnPlayerStateChange(playerid, PLAYER_STATE:newstate, PLAYER_STATE:oldstate)
 {
-	#if defined SPECTATE_MODE
+	#if defined GADMIN_SPECTATE_MODE
 	if(IsPlayerFlag(playerid,PLAYER_FLAG_SPECTATED)) {
 	    new
 	        vid=GetPlayerVehicleID(playerid);
 		foreachEx(i) {
 			if(PlayerInfo[i][Spec]==playerid) { //
 				if(newstate==PLAYER_STATE_ONFOOT) {
-					TogglePlayerSpectating(i, 1);
+					TogglePlayerSpectating(i,true);
 					PlayerSpectatePlayer(i,playerid);
 				}
 				else if(newstate==PLAYER_STATE_DRIVER || newstate==PLAYER_STATE_PASSENGER) {
-					TogglePlayerSpectating(i, 1);
-					PlayerSpectateVehicle(i,vid, 1);
+					TogglePlayerSpectating(i,true);
+					PlayerSpectateVehicle(i,vid,SPECTATE_MODE_NORMAL);
 				}
 				else if(newstate==PLAYER_STATE_SPECTATING) {
 					//Force to stop spectating
 					ResetSpectateInfo(i);
-					TogglePlayerSpectating(i,0);
+					TogglePlayerSpectating(i,false);
 					PlayerInfo[i][Spec]=FREE_SPEC_ID;
 					SetPlayerInterior(i,0);
 					SendClientLanguageMessage(playerid,COLOR_YELLOW,"txt_spec3");
@@ -2859,7 +2857,7 @@ public OnPlayerStateChange(playerid, PLAYER_STATE:newstate, PLAYER_STATE:oldstat
 	#endif
 	return 1;
 }
-#if defined SPECTATE_MODE
+#if defined GADMIN_SPECTATE_MODE
 public OnPlayerInteriorChange(playerid, newinteriorid, oldinteriorid)
 {
 	if(IsPlayerFlag(playerid,PLAYER_FLAG_SPECTATED)) {
@@ -2868,12 +2866,12 @@ public OnPlayerInteriorChange(playerid, newinteriorid, oldinteriorid)
 		foreachEx(i) {
 			if(PlayerInfo[i][Spec]==playerid) { //
 				if(vid) {
-					PlayerSpectateVehicle(i,vid,1);
+					PlayerSpectateVehicle(i,vid,SPECTATE_MODE_NORMAL);
 				}
 	 			else {
 				    PlayerSpectatePlayer(i, playerid);
 				}
-				TogglePlayerSpectating(i, 1);
+				TogglePlayerSpectating(i,true);
   				SetPlayerInterior(i,newinteriorid);
 			}
 		}
@@ -3214,7 +3212,7 @@ public OnPlayerLogin(playerid,type) {
 	#endif
 
 	if(PlayerInfo[playerid][AdminLevel] >= g_Level[ladmintele]) {
-	   	AllowPlayerTeleport(playerid,1);
+	   	AllowPlayerTeleport(playerid,true);
 	}
 	if(PlayerInfo[playerid][AdminLevel]>=2) {
 	    INI_Open(AdminList);
@@ -3285,8 +3283,8 @@ public OnPlayerLogout(playerid) {
 		dUserSetFLOAT(ThePlayer).("Z",Z);
 		#endif
 	#endif
-	AllowPlayerTeleport(playerid,0);
-	#if defined SPECTATE_MODE
+	AllowPlayerTeleport(playerid,false);
+	#if defined GADMIN_SPECTATE_MODE
 		TogglePlayerSpectating(playerid, false);
 	#endif
    	DeletePlayerFlag(playerid,PLAYER_FLAG_LOGGEDIN);
@@ -3314,7 +3312,7 @@ public OnPlayerRegister(playerid) {
 		INI_Save();
 		INI_Close();
 		if(PlayerInfo[playerid][AdminLevel] >= g_Level[ladmintele]) {
-			AllowPlayerTeleport(playerid,1);
+			AllowPlayerTeleport(playerid,true);
 		}
 	}
 	else {
@@ -3481,7 +3479,7 @@ public Countdown(iFreeze) {
 		KillTimer(g_tCountdown);
 		//bCountdownInProgress=false;
 		#if defined DISPLAY_MODE && !defined DISPLAY_MODE_TD
-		g_tRestart=SetTimer("RestartDisplay",2*1000,0);
+		g_tRestart=SetTimer("RestartDisplay",2*1000,false);
 		#endif
 		if(iFreeze == 1) {
 			foreach(i) {
@@ -3722,7 +3720,7 @@ stock SetJail(playerid,bool:Jailed = true) {
 	}
 	SetCameraBehindPlayer(playerid);
 }
-#if defined SPECTATE_MODE
+#if defined GADMIN_SPECTATE_MODE
 stock ResetSpectateInfo(id) {
 	if(PlayerInfo[id][Spec]!=FREE_SPEC_ID) {
 		new
@@ -5206,7 +5204,7 @@ COMMAND:jail(playerid,params[]) {
 			    }
 	  			AddPlayerFlag(giveid,PLAYER_FLAG_JAIL);
 	  			KillTimer(PlayerInfo[giveid][tJail]);
-	  			PlayerInfo[giveid][tJail]=SetTimerEx("ReleasePlayer",time*1000,0,"d",giveid);
+	  			PlayerInfo[giveid][tJail]=SetTimerEx("ReleasePlayer",time*1000,false,"d",giveid);
 	  			SetJail(giveid,true);
 				CreateClientLanguageMessages("txt_jail2",PlayerName(giveid),giveid,PlayerName(playerid),time);
 				SendAdminCommand(COLOR_YELLOW);
@@ -5308,7 +5306,7 @@ COMMAND:announce(playerid, params[]) {
 			g_SpeedOMeterUpdate_Count=g_SpeedOMeterUpdate+1;
 			g_AreaNameUpdate_Count=g_AreaNameUpdate+1;
 			g_SpeedNameUpdate_Count=g_SpeedNameUpdate+1;
-			g_tRestart=SetTimer("RestartDisplay",time+50,0);
+			g_tRestart=SetTimer("RestartDisplay",time+50,false);
 			#endif
 			return GameTextForAll(msg,time,style);
 		}
@@ -5532,7 +5530,7 @@ COMMAND:countdown(playerid, params[]) {
 			sscanf(sFreeze,"d",doFreeze);
 			if(doFreeze > 1) doFreeze = 1;
 			if(doFreeze < 0) doFreeze = 0;
-			g_tCountdown=SetTimerEx("Countdown",1000,1,"d",doFreeze);
+			g_tCountdown=SetTimerEx("Countdown",1000,true,"d",doFreeze);
 			g_StepCountdown=count;
 			Countdown(doFreeze);
 		}
@@ -5778,7 +5776,7 @@ COMMAND:giveweapon(playerid,params[]) {
 		    for(new i; i < sizeof(aWeaponNames) ; i++) {
 			    if(!strfind(aWeaponNames[i],sWeapon,true)) {
 					bFound = true;
-					GivePlayerWeapon(giveid,i,amount);
+					GivePlayerWeapon(giveid,WEAPON:i,amount);
 					CreateClientLanguageMessages("txt_giveweapon1",PlayerName(playerid),PlayerName(giveid),aWeaponNames[i],amount);
 					SendAdminCommand(COLOR_YELLOW);
 					return WriteLog(clearlog,LanguageString(ServerLanguage()));
@@ -5794,8 +5792,8 @@ COMMAND:giveweapon(playerid,params[]) {
 		else {
 		    new
        			weap[24];
-			GetWeaponName(weaponid,weap,sizeof(weap));
-			GivePlayerWeapon(giveid,weaponid,amount);
+			GetWeaponName(WEAPON:weaponid,weap,sizeof(weap));
+			GivePlayerWeapon(giveid,WEAPON:weaponid,amount);
 			CreateClientLanguageMessages("txt_giveweapon1",PlayerName(playerid),PlayerName(giveid),weap,amount);
 			SendAdminCommand(COLOR_YELLOW);
 			return WriteLog(clearlog,LanguageString(ServerLanguage()));
@@ -6313,7 +6311,7 @@ COMMAND:carcolor(playerid,params[]) {
 					SendClientLanguageMessage(playerid,COLOR_RED,"txt_carcolor2");
 				}
 				else {
-					ChangeVehicleColor(vid,c1,c2);
+					ChangeVehicleColours(vid,c1,c2);
 					SendClientLanguageMessage(playerid,COLOR_ORANGE,"txt_carcolor3",c1,c2);
 				}
 			}
@@ -6398,13 +6396,13 @@ COMMAND:ammu(playerid, params[]) {
 	return 1;
 }
 #endif
-#if defined SPECTATE_MODE
+#if defined GADMIN_SPECTATE_MODE
 COMMAND:specoff(playerid,params[]) {
 #pragma unused params
 	if(PlayerInfo[playerid][AdminLevel] >= g_Level[lspec]) {
 		if(PlayerInfo[playerid][Spec]!=-1 ) {
 			ResetSpectateInfo(playerid);
-			TogglePlayerSpectating(playerid,0);
+			TogglePlayerSpectating(playerid,false);
 			PlayerInfo[playerid][Spec]=FREE_SPEC_ID;
 			SetPlayerInterior(playerid,0);
 			SendClientLanguageMessage(playerid,COLOR_GREEN,"txt_spec2");
@@ -6421,7 +6419,7 @@ COMMAND:spec(playerid,params[]) {
 	if(PlayerInfo[playerid][AdminLevel] >= g_Level[lspec]) {
 		if(params[0] && !strcmp(params,off,true) && PlayerInfo[playerid][Spec]!=-1 ) {
 			ResetSpectateInfo(playerid);
-			TogglePlayerSpectating(playerid,0);
+			TogglePlayerSpectating(playerid,false);
 			PlayerInfo[playerid][Spec] = FREE_SPEC_ID;
 			SetPlayerInterior(playerid,0);
 			SetPlayerVirtualWorld(playerid,floatround(PlayerInfo[playerid][fSave][5]));
@@ -6448,9 +6446,9 @@ COMMAND:spec(playerid,params[]) {
  				ResetSpectateInfo(playerid);
 				PlayerInfo[playerid][Spec]=giveid;
 				AddPlayerFlag(giveid,PLAYER_FLAG_SPECTATED);
-				TogglePlayerSpectating(playerid, 1);
+				TogglePlayerSpectating(playerid,true);
 				if((vid=GetPlayerVehicleID(giveid))) {
-					PlayerSpectateVehicle(playerid,vid, 1);
+					PlayerSpectateVehicle(playerid,vid,SPECTATE_MODE_NORMAL);
 				}
  				else {
 					PlayerSpectatePlayer(playerid, giveid);
@@ -6907,7 +6905,7 @@ COMMAND:settings(playerid,params[]) {
 			#else
 			fwrite(Output,"Spectate Mode: on\r\n");
 			#endif
-			#if defined SPECTATE_MODE
+			#if defined GADMIN_SPECTATE_MODE
 			#else
 			fwrite(Output," - No Spectate Mode -\r\n");
 			#endif
@@ -7144,7 +7142,7 @@ COMMAND:gmx(playerid,params[]) {
 	    CreateClientLanguageMessages("txt_gmx",PlayerName(playerid));
 		SendClientPreLanguageMessages(COLOR_RED2);
 		WriteLog(clearlog,LanguageString(ServerLanguage()));
-		g_tGMX=SetTimer("CallGameModeExit",10*1000,0);
+		g_tGMX=SetTimer("CallGameModeExit",10*1000,false);
 	}
 	else {
 		SendClientLanguageMessage(playerid,COLOR_LIGHTBLUE,"txt_error404");
@@ -7524,7 +7522,7 @@ stock AdminChat(playerid, params[]) {
  	return WriteLog(adminlog,s[2]);    /* [2] -> We dont need "# " in adminlog since we know it's adminchat */
 }
 //**********
-stock AdminNote(msg[]="") {
+stock AdminNote(const msg[]="") {
 	if(!msg[0]) {
 		foreachEx(i) {
 			if(PlayerInfo[i][AdminLevel]>=2) {
@@ -7541,7 +7539,7 @@ stock AdminNote(msg[]="") {
  	return WriteLog(adminlog,msg);
 }
 //**********
-stock SendAdminCommand(color,msg[]="") {
+stock SendAdminCommand(color,const msg[]="") {
 	if(!msg[0]) {
 		if(g_bShow_AdminCommand) {
 		    foreach(i) {
@@ -7660,7 +7658,7 @@ stock LoadConfig() {
 		if(!INI_IsSet("explode"))			INI_WriteInt("explode",3,600); //
 		if(!INI_IsSet("setscore"))			INI_WriteInt("setscore",2,600); //
 		if(!INI_IsSet("carcolor"))			INI_WriteInt("carcolor",3,600); //
-		#if defined SPECTATE_MODE
+		#if defined GADMIN_SPECTATE_MODE
 		if(!INI_IsSet("spectate"))			INI_WriteInt("spectate",4,600); //
 		#endif
  		if(!INI_IsSet("noon"))				INI_WriteInt("noon",2,600); //
@@ -8000,7 +7998,7 @@ stock LoadConfig() {
    	INI_Save();
    	INI_Close();
 	// End of loading
-	GetServerVarAsString("worldtime",s,sizeof(s));
+	GetConsoleVarAsString("worldtime",s,sizeof(s));
 	g_Time=strval(s);
 	IPBansEntryCount=0;
 	LoadIPBanEntrys();
@@ -8108,7 +8106,7 @@ stock LoadConfig() {
 			print(" * Disconnected Echo Bot	- Reconnect soon!");
 		}
 		/* 4 seconds after serverstart bot try's to connect */
-		SetTimer("IRCJoin",4*1000,0);
+		SetTimer("IRCJoin",4*1000,false);
 	#endif
 	return 1;
 }
@@ -8122,7 +8120,7 @@ stock CheckTimers( ignoreid = -1 ) {
 		}
 	}
 	if(!g_bTimers && Players >= 1) {
-		g_tTrigger=SetTimer("Trigger",1*1000,1);
+		g_tTrigger=SetTimer("Trigger",1*1000,true);
 		g_bTimers=true;
 		print("gAdmin globalTimer activated");
 	}
@@ -8761,10 +8759,10 @@ stock CreatePlayerDraw(playerid) {
 	if(!IsPlayerFlag(playerid,PLAYER_FLAG_DRAWAVAILABLE)) {
 		PlayerInfo[playerid][td_PlayerDraw]=TextDrawCreate(88,429,"_");
 	 	TextDrawLetterSize(PlayerInfo[playerid][td_PlayerDraw], 0.25, 0.9);
-	 	TextDrawFont(PlayerInfo[playerid][td_PlayerDraw],2);
+	 	TextDrawFont(PlayerInfo[playerid][td_PlayerDraw],TEXT_DRAW_FONT_2);
 		TextDrawSetProportional(PlayerInfo[playerid][td_PlayerDraw],true);
 	 	TextDrawSetOutline(PlayerInfo[playerid][td_PlayerDraw], 1);
-	 	TextDrawAlignment(PlayerInfo[playerid][td_PlayerDraw], 2);
+	 	TextDrawAlignment(PlayerInfo[playerid][td_PlayerDraw],TEXT_DRAW_ALIGN_CENTRE);
   		AddPlayerFlag(playerid,PLAYER_FLAG_DRAWAVAILABLE);
 		return 1;
 	}

@@ -108,7 +108,7 @@ stock IsValidLanguageID(Language:languageid) {
 }
 	
 
-stock Language:AddLanguage(LangShort[SMALL_LEN],LangNormal[LONG_LEN],FileExtension[EXT_LEN]) {
+stock Language:AddLanguage(const LangShort[SMALL_LEN],const LangNormal[LONG_LEN],const FileExtension[EXT_LEN]) {
 	if(Language_Count > MAX_LANGUAGES) {
 		printf("[Error] Can't add more Languages (%s)",LangNormal);
 		return Language:-1;
@@ -169,7 +169,7 @@ stock LoadLanguageFile(Language:languageid) {
 	fclose(LFile);
 	return 1;
 }
-stock GetLanguageString(Language:languageid,iden[]) {
+stock GetLanguageString(Language:languageid,const iden[]) {
 	if(!IsValidLanguageID(languageid)) {
 	    return LanguageError;
 	}

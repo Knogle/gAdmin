@@ -399,7 +399,7 @@ Notes:
 	-
 -*----------------------------------------------------------------------------*/
 
-static Format_AddString(output[], &maxlen, string[], width, prec)
+static Format_AddString(output[], &maxlen, const string[], width, prec)
 {
 	new
 		size,
@@ -1096,7 +1096,7 @@ stock printfex(const format[], {Float,_}:...)
 }
 /* SendClientLanguage */
 
-stock SendClientLanguageMessage(playerid,color,put[], {Float,_}:...)
+stock SendClientLanguageMessage(playerid,color,const put[], {Float,_}:...)
 {
 	new
 		numa = numargs(),
@@ -1242,7 +1242,7 @@ stock SendClientLanguageMessage(playerid,color,put[], {Float,_}:...)
 	return 1;
 }
 
-stock SendClientFormatMessage(playerid,color,put[], {Float,_}:...)
+stock SendClientFormatMessage(playerid,color,const put[], {Float,_}:...)
 {
 	new
 		numa = numargs(),
@@ -1384,7 +1384,7 @@ stock SendClientFormatMessage(playerid,color,put[], {Float,_}:...)
 	SendClientMessage(playerid,color,output);
 	return 1;
 }
-stock SendClientLanguageMessageToAll(color,put[], {Float,_}:...)
+stock SendClientLanguageMessageToAll(color,const put[], {Float,_}:...)
 {
 	new
 		numa = numargs(),
@@ -1549,7 +1549,7 @@ stock SendClientPreLanguageMessages(color) {
 	return 1;
 }
 
-stock CreateClientLanguageMessage(Language:languageid,indentifier[], {Float,_}:...)
+stock CreateClientLanguageMessage(Language:languageid,const indentifier[], {Float,_}:...)
 {
 	new
 		numa = numargs(),
@@ -1691,7 +1691,7 @@ stock CreateClientLanguageMessage(Language:languageid,indentifier[], {Float,_}:.
 	sLanguagestring[languageid][0]='\0';
 	format(LanguageString(languageid),SIZELanguageString,output);
 }
-stock CreateClientLanguageMessages(indentifier[], {Float,_}:...)
+stock CreateClientLanguageMessages(const indentifier[], {Float,_}:...)
 {
 	new
 		numa = numargs(),
