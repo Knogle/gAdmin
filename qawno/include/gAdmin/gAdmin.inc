@@ -129,7 +129,7 @@ stock CheckFileEntry(playerid,file[],params[]) {
 stock WriteLog(file[],text[])
 {
 	new
-		File:cFile = cFile=fopen(file, io_append);
+		File:cFile=fopen(file, io_append);
 	if(!cFile) return 0;
 	new
 		c[128 + 32], // Should be enaugh,we never pass a string bigger than that
@@ -599,13 +599,6 @@ stock PlaySoundForAll(soundid) { //By Smugller
  	return 1;
 }
 //-------------------------------------------------------------------------------
-stock IsPlayerSpawned(playerid) {
-	new
-		PlayerState;
-	PlayerState=GetPlayerState(playerid);
-	return ( PlayerState != PLAYER_STATE_NONE && PlayerState != PLAYER_STATE_WASTED && PlayerState != PLAYER_STATE_SPECTATING);
-}
-//-------------------------------------------------------------------------------
 // Created by Y_Less
 stock GetXYInFrontOfPlayer(playerid, &Float:x, &Float:y, Float:distance) {
 	new
@@ -769,7 +762,7 @@ new Float:zones[][zoneinfo] = {
 { "Glen Park",                    1812.60, -1449.60,   -89.00,  1996.90, -1350.70,   110.90},
 { "Glen Park",                    1812.60, -1100.80,   -89.00,  1994.30,  -973.30,   110.90},
 { "Glen Park",                    1812.60, -1350.70,   -89.00,  2056.80, -1100.80,   110.90},
-{ "Al-Qal'at Klft.Blackfield Rocket Launcher",                   276.50,  1405.40,    -3.00,   438.60,  1620.70,   300.00},
+{ "Blackfield Chapel",            276.50,  1405.40,    -3.00,   438.60,  1620.70,   300.00},
 { "Greenglass College",            964.30,  1044.60,   -89.00,  1197.30,  1203.20,   110.90},
 { "Greenglass College",            964.30,   930.80,   -89.00,  1166.50,  1044.60,   110.90},
 { "Hampton Barns",                 603.00,   264.30,     0.00,   761.90,   366.50,   200.00},

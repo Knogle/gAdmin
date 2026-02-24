@@ -1457,7 +1457,7 @@ public OnPlayerSpawn(playerid)
 	return 1;
 }
 
-public OnPlayerDeath(playerid, killerid, reason)
+public OnPlayerDeath(playerid, killerid, WEAPON:reason)
 {
 	if(killerid != INVALID_PLAYER_ID) {
 		#if defined EXTRA_COMMANDS
@@ -2818,7 +2818,7 @@ public OnPlayerExitedMenu(playerid)
 	return 1;
 }
 #endif
-public OnPlayerStateChange(playerid, newstate, oldstate)
+public OnPlayerStateChange(playerid, PLAYER_STATE:newstate, PLAYER_STATE:oldstate)
 {
 	#if defined SPECTATE_MODE
 	if(IsPlayerFlag(playerid,PLAYER_FLAG_SPECTATED)) {
@@ -3800,7 +3800,7 @@ COMMAND:info(playerid, params[]) {
 	SendClientMessage(playerid,COLOR_YELLOW,"By Goldkiller");
 	return SendClientMessage(playerid,COLOR_WHITE,"*************************");
 }
-public OnPlayerClickPlayer(playerid, clickedplayerid, source)
+public OnPlayerClickPlayer(playerid, clickedplayerid, CLICK_SOURCE:source)
 {
 	if(source == CLICK_SOURCE_SCOREBOARD) {
 	    valstr(s,clickedplayerid);
