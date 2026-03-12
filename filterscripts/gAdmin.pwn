@@ -219,17 +219,576 @@ new g_Max_Players;
 #if defined MYSQL
 	#include <gAdmin/gSQL_StrickenKid>
 #else
-	#include <gAdmin/dfiles>
+	#include <YSI_Storage/y_ini>
 #endif
 #if defined IRC
 #include <irc>
 #endif
+
+#if !defined MYSQL
+
+#define MAX_STRING_UDB (128)
+
+enum e_GAdminIniReadType
+{
+	GADMIN_INI_READ_NONE,
+	GADMIN_INI_READ_STRING,
+	GADMIN_INI_READ_INT,
+	GADMIN_INI_READ_FLOAT,
+	GADMIN_INI_READ_BOOL
+}
+
+static INI:g_GAdminIniCurrentFile = INI_NO_FILE;
+static g_GAdminIniCurrentPath[128];
+static bool:g_GAdminIniReadFound;
+static e_GAdminIniReadType:g_GAdminIniReadType = GADMIN_INI_READ_NONE;
+static g_GAdminIniReadKey[64];
+static g_GAdminIniReadTag[64];
+static g_GAdminIniReadString[MAX_STRING];
+static g_GAdminIniReadInt;
+static Float:g_GAdminIniReadFloat;
+static bool:g_GAdminIniReadBool;
+
+forward GAdminINI_ParseCallback(string:tag[], string:name[], string:value[]);
+
+stock set(dest[], const source[])
+{
+	new count = strlen(source);
+	for (new i = 0; i < count; i++)
+	{
+		dest[i] = source[i];
+	}
+	dest[count] = '\0';
+}
+
+stock num_hash(const buf[])
+{
+	new length = strlen(buf);
+	new s1 = 1;
+	new s2 = 0;
+	for (new n = 0; n < length; n++)
+	{
+		s1 = (s1 + buf[n]) % 65521;
+		s2 = (s2 + s1) % 65521;
+	}
+	return (s2 << 16) + s1;
+}
+
+stock strreplace(const sSearch[], const sReplace[], const sSubject[], &iCount = 0)
+{
+	new iLengthTarget = strlen(sSearch);
+	new iLengthReplace = strlen(sReplace);
+	new iLengthSource = strlen(sSubject);
+	new iIterations = (iLengthSource - iLengthTarget) + 1;
+
+	new sTemp[128];
+	new sReturn[256];
+
+	strcat(sReturn, sSubject, sizeof(sReturn));
+	iCount = 0;
+
+	for (new iIndex = 0; iIndex < iIterations; ++iIndex)
+	{
+		strmid(sTemp, sReturn, iIndex, iIndex + iLengthTarget, iLengthTarget + 1);
+		if (!strcmp(sTemp, sSearch, false))
+		{
+			strdel(sReturn, iIndex, iIndex + iLengthTarget);
+			strins(sReturn, sReplace, iIndex, iLengthReplace);
+			iIndex += iLengthTarget;
+			iCount++;
+		}
+	}
+	return sReturn;
+}
+
+stock _frename(const oldname[], const newname[])
+{
+	if (!fexist(oldname))
+	{
+		return false;
+	}
+
+	new File:source = fopen(oldname, io_read);
+	if (!source)
+	{
+		return false;
+	}
+
+	fremove(newname);
+
+	new File:target = fopen(newname, io_write);
+	if (!target)
+	{
+		fclose(source);
+		return false;
+	}
+
+	new line[MAX_STRING];
+	while (fread(source, line))
+	{
+		fwrite(target, line);
+	}
+
+	fclose(source);
+	fclose(target);
+	fremove(oldname);
+	return true;
+}
+
+stock GAdminINI_ResetReadState(e_GAdminIniReadType:type, const key[], const tag[] = "")
+{
+	g_GAdminIniReadFound = false;
+	g_GAdminIniReadType = type;
+	g_GAdminIniReadKey[0] = '\0';
+	g_GAdminIniReadTag[0] = '\0';
+	g_GAdminIniReadString[0] = '\0';
+	g_GAdminIniReadInt = 0;
+	g_GAdminIniReadFloat = 0.0;
+	g_GAdminIniReadBool = false;
+	format(g_GAdminIniReadKey, sizeof(g_GAdminIniReadKey), "%s", key);
+	if (tag[0] != '\0')
+	{
+		format(g_GAdminIniReadTag, sizeof(g_GAdminIniReadTag), "%s", tag);
+	}
+}
+
+public GAdminINI_ParseCallback(string:tag[], string:name[], string:value[])
+{
+	if (g_GAdminIniReadTag[0] != '\0' && strcmp(tag, g_GAdminIniReadTag, false) != 0)
+	{
+		return 1;
+	}
+	if (strcmp(name, g_GAdminIniReadKey, false) != 0)
+	{
+		return 1;
+	}
+
+	switch (g_GAdminIniReadType)
+	{
+		case GADMIN_INI_READ_STRING:
+		{
+			format(g_GAdminIniReadString, sizeof(g_GAdminIniReadString), "%s", value);
+		}
+		case GADMIN_INI_READ_INT:
+		{
+			g_GAdminIniReadInt = strval(value);
+		}
+		case GADMIN_INI_READ_FLOAT:
+		{
+			g_GAdminIniReadFloat = floatstr(value);
+		}
+		case GADMIN_INI_READ_BOOL:
+		{
+			g_GAdminIniReadBool = bool:strval(value);
+		}
+	}
+
+	g_GAdminIniReadFound = true;
+	return 1;
+}
+
+stock bool:GAdminINI_Create(const filename[])
+{
+	if (fexist(filename))
+	{
+		return true;
+	}
+
+	new File:file = fopen(filename, io_write);
+	if (!file)
+	{
+		return false;
+	}
+
+	fclose(file);
+	return true;
+}
+
+stock bool:GAdminINI_Open(const filename[])
+{
+	if (!filename[0])
+	{
+		return false;
+	}
+
+	if (g_GAdminIniCurrentFile != INI_NO_FILE)
+	{
+		INI_Close(g_GAdminIniCurrentFile);
+		g_GAdminIniCurrentFile = INI_NO_FILE;
+		g_GAdminIniCurrentPath[0] = '\0';
+	}
+
+	g_GAdminIniCurrentFile = INI_Open(filename);
+	if (g_GAdminIniCurrentFile == INI_NO_FILE)
+	{
+		return false;
+	}
+
+	format(g_GAdminIniCurrentPath, sizeof(g_GAdminIniCurrentPath), "%s", filename);
+	return true;
+}
+
+stock bool:GAdminINI_Save()
+{
+	return g_GAdminIniCurrentFile != INI_NO_FILE;
+}
+
+stock bool:GAdminINI_Close()
+{
+	if (g_GAdminIniCurrentFile == INI_NO_FILE)
+	{
+		return false;
+	}
+
+	INI_Close(g_GAdminIniCurrentFile);
+	g_GAdminIniCurrentFile = INI_NO_FILE;
+	g_GAdminIniCurrentPath[0] = '\0';
+	return true;
+}
+
+stock bool:GAdminINI_ReadStringByFile(const filename[], const key[], dest[], maxlength = sizeof(dest))
+{
+	if (!fexist(filename))
+	{
+		dest[0] = '\0';
+		return false;
+	}
+
+	GAdminINI_ResetReadState(GADMIN_INI_READ_STRING, key);
+	INI_ParseFile(filename, "GAdminINI_ParseCallback", .bPassTag = true);
+	if (!g_GAdminIniReadFound)
+	{
+		dest[0] = '\0';
+		return false;
+	}
+
+	format(dest, maxlength, "%s", g_GAdminIniReadString);
+	return true;
+}
+
+stock GAdminINI_ReadIntByFile(const filename[], const key[])
+{
+	if (!fexist(filename))
+	{
+		return 0;
+	}
+
+	GAdminINI_ResetReadState(GADMIN_INI_READ_INT, key);
+	INI_ParseFile(filename, "GAdminINI_ParseCallback", .bPassTag = true);
+	return g_GAdminIniReadFound ? g_GAdminIniReadInt : 0;
+}
+
+stock Float:GAdminINI_ReadFloatByFile(const filename[], const key[])
+{
+	if (!fexist(filename))
+	{
+		return 0.0;
+	}
+
+	GAdminINI_ResetReadState(GADMIN_INI_READ_FLOAT, key);
+	INI_ParseFile(filename, "GAdminINI_ParseCallback", .bPassTag = true);
+	return g_GAdminIniReadFound ? g_GAdminIniReadFloat : 0.0;
+}
+
+stock bool:GAdminINI_ReadBoolByFile(const filename[], const key[])
+{
+	if (!fexist(filename))
+	{
+		return false;
+	}
+
+	GAdminINI_ResetReadState(GADMIN_INI_READ_BOOL, key);
+	INI_ParseFile(filename, "GAdminINI_ParseCallback", .bPassTag = true);
+	return g_GAdminIniReadFound ? g_GAdminIniReadBool : false;
+}
+
+stock bool:GAdminINI_IsSet(const key[])
+{
+	new tmp[2];
+	return GAdminINI_ReadStringByFile(g_GAdminIniCurrentPath, key, tmp, sizeof(tmp));
+}
+
+stock GAdminINI_ReadString(dest[], const key[], maxlength = sizeof(dest))
+{
+	if (g_GAdminIniCurrentPath[0] == '\0')
+	{
+		dest[0] = '\0';
+		return false;
+	}
+	return GAdminINI_ReadStringByFile(g_GAdminIniCurrentPath, key, dest, maxlength);
+}
+
+stock GAdminINI_ReadInt(const key[], _legacy_maxlen = 0)
+{
+	#pragma unused _legacy_maxlen
+	return GAdminINI_ReadIntByFile(g_GAdminIniCurrentPath, key);
+}
+
+stock Float:GAdminINI_ReadFloat(const key[])
+{
+	return GAdminINI_ReadFloatByFile(g_GAdminIniCurrentPath, key);
+}
+
+stock bool:GAdminINI_ReadBool(const key[])
+{
+	return GAdminINI_ReadBoolByFile(g_GAdminIniCurrentPath, key);
+}
+
+stock bool:GAdminINI_WriteString(const key[], const value[], _legacy_maxlen = 0)
+{
+	#pragma unused _legacy_maxlen
+	if (g_GAdminIniCurrentFile == INI_NO_FILE)
+	{
+		return false;
+	}
+	return INI_WriteString(g_GAdminIniCurrentFile, key, value);
+}
+
+stock bool:GAdminINI_WriteInt(const key[], value, _legacy_maxlen = 0)
+{
+	#pragma unused _legacy_maxlen
+	if (g_GAdminIniCurrentFile == INI_NO_FILE)
+	{
+		return false;
+	}
+	return INI_WriteInt(g_GAdminIniCurrentFile, key, value);
+}
+
+stock bool:GAdminINI_WriteFloat(const key[], Float:value, accuracy = 6)
+{
+	if (g_GAdminIniCurrentFile == INI_NO_FILE)
+	{
+		return false;
+	}
+	return INI_WriteFloat(g_GAdminIniCurrentFile, key, value, accuracy);
+}
+
+stock bool:GAdminINI_WriteBool(const key[], bool:value)
+{
+	if (g_GAdminIniCurrentFile == INI_NO_FILE)
+	{
+		return false;
+	}
+	return INI_WriteBool(g_GAdminIniCurrentFile, key, value);
+}
+
+stock bool:GAdminINI_RemoveEntry(const key[])
+{
+	if (g_GAdminIniCurrentFile == INI_NO_FILE)
+	{
+		return false;
+	}
+	return INI_RemoveEntry(g_GAdminIniCurrentFile, key);
+}
+
+stock udb_encode(const nickname[])
+{
+	new tmp[MAX_STRING];
+	set(tmp, nickname);
+	tmp = strreplace("_", "_00", tmp);
+	tmp = strreplace(";", "_01", tmp);
+	tmp = strreplace("!", "_02", tmp);
+	tmp = strreplace("/", "_03", tmp);
+	tmp = strreplace("\\", "_04", tmp);
+	tmp = strreplace("[", "_05", tmp);
+	tmp = strreplace("]", "_06", tmp);
+	tmp = strreplace("?", "_07", tmp);
+	tmp = strreplace(".", "_08", tmp);
+	tmp = strreplace("*", "_09", tmp);
+	tmp = strreplace("<", "_10", tmp);
+	tmp = strreplace(">", "_11", tmp);
+	tmp = strreplace("{", "_12", tmp);
+	tmp = strreplace("}", "_13", tmp);
+	tmp = strreplace(" ", "_14", tmp);
+	tmp = strreplace("\"", "_15", tmp);
+	tmp = strreplace(":", "_16", tmp);
+	tmp = strreplace("|", "_17", tmp);
+	tmp = strreplace("=", "_18", tmp);
+	return tmp;
+}
+
+stock udb_decode(const nickname[])
+{
+	new tmp[MAX_STRING];
+	set(tmp, nickname);
+	tmp = strreplace("_01", ";", tmp);
+	tmp = strreplace("_02", "!", tmp);
+	tmp = strreplace("_03", "/", tmp);
+	tmp = strreplace("_04", "\\", tmp);
+	tmp = strreplace("_05", "[", tmp);
+	tmp = strreplace("_06", "]", tmp);
+	tmp = strreplace("_07", "?", tmp);
+	tmp = strreplace("_08", ".", tmp);
+	tmp = strreplace("_09", "*", tmp);
+	tmp = strreplace("_10", "<", tmp);
+	tmp = strreplace("_11", ">", tmp);
+	tmp = strreplace("_12", "{", tmp);
+	tmp = strreplace("_13", "}", tmp);
+	tmp = strreplace("_14", " ", tmp);
+	tmp = strreplace("_15", "\"", tmp);
+	tmp = strreplace("_16", ":", tmp);
+	tmp = strreplace("_17", "|", tmp);
+	tmp = strreplace("_18", "=", tmp);
+	tmp = strreplace("_00", "_", tmp);
+	return tmp;
+}
+
+stock GAdminUDB_Path(const nickname[], dest[], maxlength)
+{
+	format(dest, maxlength, "gAdmin User/%s.txt", udb_encode(nickname));
+}
+
+stock udb_Exists(const nickname[])
+{
+	new path[MAX_STRING_UDB];
+	GAdminUDB_Path(nickname, path, sizeof(path));
+	return fexist(path);
+}
+
+stock udb_Remove(const nickname[])
+{
+	new path[MAX_STRING_UDB];
+	GAdminUDB_Path(nickname, path, sizeof(path));
+	return fremove(path);
+}
+
+stock udb_UserSetInt(const nickname[], const key[], value)
+{
+	new path[MAX_STRING_UDB];
+	GAdminUDB_Path(nickname, path, sizeof(path));
+	if (!GAdminINI_Open(path))
+	{
+		return false;
+	}
+	new bool:result = GAdminINI_WriteInt(key, value);
+	GAdminINI_Close();
+	return result;
+}
+
+stock udb_UserSetFloat(const nickname[], const key[], Float:value)
+{
+	new path[MAX_STRING_UDB];
+	GAdminUDB_Path(nickname, path, sizeof(path));
+	if (!GAdminINI_Open(path))
+	{
+		return false;
+	}
+	new bool:result = GAdminINI_WriteFloat(key, value);
+	GAdminINI_Close();
+	return result;
+}
+
+stock udb_UserSet(const nickname[], const key[], const value[])
+{
+	new path[MAX_STRING_UDB];
+	GAdminUDB_Path(nickname, path, sizeof(path));
+	if (!GAdminINI_Open(path))
+	{
+		return false;
+	}
+	new bool:result = GAdminINI_WriteString(key, value);
+	GAdminINI_Close();
+	return result;
+}
+
+stock udb_User(const nickname[], const key[])
+{
+	new path[MAX_STRING_UDB];
+	new value[MAX_STRING];
+	GAdminUDB_Path(nickname, path, sizeof(path));
+	GAdminINI_ReadStringByFile(path, key, value, sizeof(value));
+	return value;
+}
+
+stock Float:udb_UserFloat(const nickname[], const key[])
+{
+	new path[MAX_STRING_UDB];
+	GAdminUDB_Path(nickname, path, sizeof(path));
+	return GAdminINI_ReadFloatByFile(path, key);
+}
+
+stock udb_UserInt(const nickname[], const key[])
+{
+	new path[MAX_STRING_UDB];
+	GAdminUDB_Path(nickname, path, sizeof(path));
+	return GAdminINI_ReadIntByFile(path, key);
+}
+
+stock udb_CheckLogin(const nickname[], const pwd[])
+{
+	return udb_UserInt(nickname, "password_hash") == num_hash(pwd);
+}
+
+stock udb_Create(const nickname[], const pwd[])
+{
+	if (udb_Exists(nickname))
+	{
+		return false;
+	}
+
+	new path[MAX_STRING_UDB];
+	GAdminUDB_Path(nickname, path, sizeof(path));
+	if (!GAdminINI_Create(path))
+	{
+		return false;
+	}
+	return udb_UserSetInt(nickname, "password_hash", num_hash(pwd));
+}
+
+stock udb_RenameUser(const nickname[], const newnick[])
+{
+	new oldpath[MAX_STRING_UDB];
+	new newpath[MAX_STRING_UDB];
+	GAdminUDB_Path(nickname, oldpath, sizeof(oldpath));
+	GAdminUDB_Path(newnick, newpath, sizeof(newpath));
+	return _frename(oldpath, newpath);
+}
+
+#define INI_Exist fexist
+#define INI_Create GAdminINI_Create
+#define INI_Open GAdminINI_Open
+#define INI_Save GAdminINI_Save
+#define INI_Close GAdminINI_Close
+#define INI_IsSet GAdminINI_IsSet
+#define INI_ReadString GAdminINI_ReadString
+#define INI_ReadInt GAdminINI_ReadInt
+#define INI_ReadFloat GAdminINI_ReadFloat
+#define INI_ReadBool GAdminINI_ReadBool
+#define INI_WriteString GAdminINI_WriteString
+#define INI_WriteInt GAdminINI_WriteInt
+#define INI_WriteFloat GAdminINI_WriteFloat
+#define INI_WriteBool GAdminINI_WriteBool
+#define INI_RemoveEntry GAdminINI_RemoveEntry
+#define dUser(%1).( udb_User(%1,
+#define dUserINT(%1).( udb_UserInt(%1,
+#define dUserSet(%1).( udb_UserSet(%1,
+#define dUserSetINT(%1).( udb_UserSetInt(%1,
+#define dUserSetFLOAT(%1).( udb_UserSetFloat(%1,
+#define dUserFLOAT(%1).( udb_UserFloat(%1,
+
+#endif
+
+#if !defined MYSQL
+	#undef strcpy
+	#define strcpy gAdmin_strcpy
+	#define chrfind gAdmin_chrfind
+#endif
 #include <gAdmin/gAdmin>
-#include <gAdmin/SII>
+#if !defined MYSQL
+	#undef strcpy
+	#define strcpy(%0,%1) strcat((%0[0] = '\0', %0), %1)
+	#undef chrfind
+#endif
 #include <gAdmin/zcmd>
 /*---- Language ---*/
 //#include <gAdmin/gFormat>
+#if !defined MYSQL
+	#define TRUE GADMIN_TRUE
+#endif
 #include <gAdmin/gLanguageV2>
+#if !defined MYSQL
+	#undef TRUE
+#endif
 
 /*---- Forwards ---*/
 forward Login(playerid);
