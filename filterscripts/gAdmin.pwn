@@ -120,10 +120,6 @@ new g_Max_Players;
 #define foreachEx(%1) \
 	for(new %1;%1<g_Max_Players;%1++)
 
-#define dcmd(%1,%2,%3) if ((strcmp((%3)[1], #%1, true, (%2)) == 0) && ((((%3)[(%2) + 1] == 0) && (dcmd_%1(playerid, "")))||(((%3)[(%2) + 1] == 32) && (dcmd_%1(playerid, (%3)[(%2) + 2]))))) return 1
-/* Modified version of dcmd() to work with strings as first paramter */
-#define dcmd2(%1,%2,%3) if ((strcmp((%3)[1], %1, true, (%2)) == 0) && ((((%3)[(%2) + 1] == 0) && (dcmd_%1(playerid, "")))||(((%3)[(%2) + 1] == 32) && (dcmd_%1(playerid, (%3)[(%2) + 2]))))) return 1
-
 
 /* Userbuild	-	Here you can decide what system to really need or not */
 
@@ -779,7 +775,7 @@ stock udb_RenameUser(const nickname[], const newnick[])
 	#define strcpy(%0,%1) strcat((%0[0] = '\0', %0), %1)
 	#undef chrfind
 #endif
-#include <gAdmin/zcmd>
+#include <Pawn.CMD>
 /*---- Language ---*/
 //#include <gAdmin/gFormat>
 #if !defined MYSQL
@@ -2313,195 +2309,18 @@ public OnPlayerPrivmsg(playerid, recieverid, text[])
 	#endif
 	return 1;
 }
-/*
-public OnPlayerCommandReceived(playerid, cmdtext[]) {
-	printf("FS %d %s",playerid, cmdtext);
-	return 1;
-}
-public OnPlayerCommandPerformed(playerid, cmdtext[], success) {
-	printf("FS %d %s %d",playerid, cmdtext, success);
-	return 1;
-}
-*/
-public OnPlayerCommandText(playerid, cmdtext[])
+/// Pawn.CMD command pre-hook to block slash commands while VTEXT input mode is active.
+/// Referenz: https://open.mp/docs/scripting/callbacks/OnPlayerCommandText
+public OnPlayerCommandReceived(playerid, cmd[], params[], flags)
 {
+	#pragma unused cmd
+	#pragma unused params
+	#pragma unused flags
+
 	if(IsPlayerFlag(playerid,PLAYER_FLAG_VTEXT)) {
 		return 0;
 	}
-/*
-	#if defined _samp03_
-	dcmd(pm,2,cmdtext);
-	#endif
-	dcmd(id,2,cmdtext);
-	dcmd(info,4, cmdtext);
-	dcmd(stats,5,cmdtext);
-	dcmd(report,6,cmdtext);
-	#if defined USE_MENUS
-	dcmd(tuner,5,cmdtext);
-	#endif
-	dcmd(loc,3,cmdtext);
-	dcmd(votekick,8,cmdtext);
-	dcmd(voteban,7,cmdtext);
-	dcmd(votelist,8,cmdtext);
-	#if defined BASIC_COMMANDS
-	dcmd(players,7, cmdtext);
-	dcmd(clock,5,cmdtext);
-	dcmd(date,4,cmdtext);
-	dcmd(pos,3,cmdtext);
-	dcmd(me,2,cmdtext);
-	dcmd(kill,4,cmdtext);
-	dcmd(givemoney,9,cmdtext);
-	#endif
-	#if defined EXTRA_COMMANDS
-	dcmd(bank,4,cmdtext);
-	dcmd(withdraw,8,cmdtext);
-	dcmd(para,4,cmdtext);
-	dcmd(hitman,6,cmdtext);
-	dcmd(bounty,6,cmdtext);
-	#endif
-	#if defined LOCK_MODE
-	dcmd(lock,4,cmdtext);
-	dcmd(unlock,6,cmdtext);
-	#endif
-	#if defined DISPLAY_MODE
-	dcmd(speedo,6,cmdtext);
-	dcmd(speedotype,10,cmdtext);
-	#endif
-	//Admin Part
-
-    dcmd2(CMD_REGISTER,	CMD_REGISTER_LEN,	cmdtext);
-    dcmd2(CMD_LOGIN,	CMD_LOGIN_LEN,		cmdtext);
-    dcmd2(CMD_CHANGEPW,	CMD_CHANGEPW_LEN,	cmdtext);
-    dcmd2(CMD_COMMANDS,	CMD_COMMANDS_LEN,	cmdtext);
-
-	dcmd(data,4,cmdtext);
-
-	dcmd(language,8,cmdtext);
-
-	dcmd(admins,6,cmdtext);
-	//dcmd(sound,5,cmdtext,600); // was just a testcommand for my gamemode
-	dcmd(ahelp,5,cmdtext);
-	dcmd(kick,4,cmdtext);
-	dcmd(fake,4,cmdtext);
- 	dcmd(heal,4,cmdtext);
- 	dcmd(sethealth,9,cmdtext);
- 	dcmd(sethp,5,cmdtext);
-	dcmd(slap,4,cmdtext);
-	dcmd(freeze,6,cmdtext);
-	dcmd(unfreeze,8,cmdtext);
-	dcmd(gravity,7,cmdtext);
-	dcmd(ip,2,cmdtext);
-	dcmd(ban,3,cmdtext);
-	dcmd(tban,4,cmdtext);
-	dcmd(goto,4,cmdtext);
-	dcmd(mute,4,cmdtext);
-	dcmd(unmute,6,cmdtext);
-	dcmd(akill,5,cmdtext);
-	dcmd(get,3,cmdtext);
-	dcmd(jail,4,cmdtext);
-	dcmd(unjail,6,cmdtext);
-	dcmd(settime,7,cmdtext);
-	dcmd(announce,8,cmdtext);
-	dcmd(ann,3,cmdtext);
-	dcmd(addblack,8,cmdtext);
-	dcmd(addwhite,8,cmdtext);
-	dcmd(addclan,7,cmdtext);
-	dcmd(banip,5,cmdtext);
-	dcmd(rangeban,8,cmdtext);
-	dcmd(nick,4,cmdtext);
-	dcmd(countdown,9,cmdtext);
-	dcmd(reloadcfg,9,cmdtext);
-	dcmd(reloadlanguages,15,cmdtext);
-	dcmd(reloadfs,8,cmdtext);
-	dcmd(reloadbans,10,cmdtext);
-	dcmd(allmoney,8,cmdtext);
-	dcmd(givecash,8,cmdtext);
-	dcmd(setmoney,8,cmdtext);
-	dcmd(setadmin,8,cmdtext);
-	dcmd(armor,5,cmdtext);
-	dcmd(armour,6,cmdtext);
-	dcmd(giveweapon,10,cmdtext);
-	dcmd(a,1,cmdtext);
-
-	dcmd(sun,3,cmdtext);
-	dcmd(cloud,5,cmdtext);
-	dcmd(sandstorm,9,cmdtext);
-	dcmd(fog,3,cmdtext);
-	dcmd(rain,4,cmdtext);
-	#if defined USE_MENUS
-	dcmd(ammu,4,cmdtext);
-	dcmd(weather,7,cmdtext);
-	#endif
-	dcmd(disarm,6,cmdtext);
-	#if !defined _samp03_
-	dcmd(numberplate,11,cmdtext);
-	#endif
-	dcmd(allheal,7,cmdtext);
-	dcmd(resetmoney,10,cmdtext);
-	dcmd(clear,5,cmdtext);
-	dcmd(clearchat,9,cmdtext);
-	dcmd(say,3,cmdtext);
-	dcmd(vr,2,cmdtext);
-	dcmd(flip,4,cmdtext);
-	dcmd(whitelist,9,cmdtext);
-	dcmd(blacklist,9,cmdtext);
-	dcmd(clanblacklist,13,cmdtext);
-	#if defined USE_MENUS
-	dcmd(v,1,cmdtext);
-	#endif
-	dcmd(skin,4,cmdtext);
-	dcmd(explode,7,cmdtext);
-	dcmd(setscore,8,cmdtext);
-	dcmd(carcolor,8,cmdtext);
-	dcmd(noon,4,cmdtext);
-	dcmd(night,5,cmdtext);
-	dcmd(morning,7,cmdtext);
-	dcmd(day,3,cmdtext);
-	#if defined GADMIN_SPECTATE_MODE
-	dcmd(spec,4,cmdtext);
-	dcmd(specoff,7,cmdtext);
-	#endif
-	dcmd(fuckup,6,cmdtext);
-	dcmd(force,5,cmdtext);
-	dcmd(ejet,4,cmdtext);
-	#if defined LOCK_MODE
-	dcmd(xunlock,7,cmdtext);
-	#endif
-	dcmd(savepos,7,cmdtext);
-	dcmd(gsave,5,cmdtext);
-	dcmd(back,4,cmdtext);
-	#if defined USE_MENUS
-	dcmd(gmenu,5,cmdtext);
-	#endif
-	dcmd(setvip,6,cmdtext);
-	dcmd(delvip,6,cmdtext);
-	#if defined USE_MENUS
-	dcmd(teleport,8,cmdtext);
-	#endif
-	dcmd(givearmor,9,cmdtext);
-	dcmd(givearmour,10,cmdtext);
-	dcmd(giveskin,8,cmdtext);
-	dcmd(jetpack,7,cmdtext);
-	dcmd(god,3,cmdtext);
-	dcmd(alldisarm,9,cmdtext);
-	dcmd(lockchat,8,cmdtext);
-	dcmd(settings,8,cmdtext);
-	dcmd(hostname,8,cmdtext);
-	dcmd(mapname,7,cmdtext);
-	dcmd(servername,10,cmdtext);
-	dcmd(getalias,8,cmdtext);
-	dcmd(port,4,cmdtext);
-	dcmd(visible,7,cmdtext);
-	dcmd(invisible,9,cmdtext);
-	dcmd(gmx,3,cmdtext);
-	dcmd(unban,5,cmdtext);
-	dcmd(gotopos,7,cmdtext);
-	dcmd(getall,6,cmdtext);
-	dcmd(myinterior,10,cmdtext);
-	dcmd(myvirtualworld,14,cmdtext);
-	dcmd(setfightstyle,13,cmdtext);
-*/
-	return 0;
+	return 1;
 }
 #if defined USE_MENUS
 public OnPlayerSelectedMenuRow(playerid, row)
@@ -4368,7 +4187,7 @@ public OnPlayerClickPlayer(playerid, clickedplayerid, CLICK_SOURCE:source)
 {
 	if(source == CLICK_SOURCE_SCOREBOARD) {
 	    valstr(s,clickedplayerid);
-		cmd_stats(playerid,s);
+		callcmd::stats(playerid,s);
 	}
 	return 1;
 }
@@ -4414,7 +4233,7 @@ COMMAND:report(playerid, params[]) {
 	return 1;
 }
 COMMAND:complain(playerid, params[]) {
-	return cmd_report(playerid,params);
+	return callcmd::report(playerid,params);
 }
 #if defined USE_MENUS
 COMMAND:tuner(playerid, params[]) {
@@ -5291,7 +5110,7 @@ COMMAND:heal(playerid,params[]) {
 	return 1;
 }
 COMMAND:sethp(playerid,params[]) {
-	return cmd_sethealth(playerid,params);
+	return callcmd::sethealth(playerid,params);
 }
 COMMAND:sethealth(playerid,params[]){
 	if(PlayerInfo[playerid][AdminLevel] >= g_Level[lsethealth]) {
@@ -5847,7 +5666,7 @@ COMMAND:settime(playerid,params[]) {
 }
 
 COMMAND:ann(playerid, params[]) {
-	cmd_announce(playerid,params);
+	return callcmd::announce(playerid,params);
 }
 COMMAND:announce(playerid, params[]) {
 	if(PlayerInfo[playerid][AdminLevel] >= g_Level[lannounce]) {
@@ -6053,7 +5872,7 @@ COMMAND:banip(playerid, params[]) {
 	return 1;
 }
 COMMAND:rangeban(playerid,params[]) {
-	return cmd_banip(playerid,params);
+	return callcmd::banip(playerid,params);
 }
 COMMAND:nick(playerid, params[]) {
 	if(PlayerInfo[playerid][AdminLevel] >= g_Level[lnick]) {
@@ -6321,10 +6140,10 @@ COMMAND:armor(playerid, params[]) {
 	return 1;
 }
 COMMAND:armour(playerid, params[]) {
-	return cmd_armor(playerid,params);
+	return callcmd::armor(playerid,params);
 }
 COMMAND:pinfo(playerid, params[]) {
-	return cmd_data(playerid,params);
+	return callcmd::data(playerid,params);
 }
 COMMAND:giveweapon(playerid,params[]) {
 	if(PlayerInfo[playerid][AdminLevel] >= g_Level[lgiveweapon]) {
@@ -6570,7 +6389,7 @@ COMMAND:resetmoney(playerid, params[]) {
 	return 1;
 }
 COMMAND:clearchat(playerid,params[]) {
-	return cmd_clear(playerid,params);
+	return callcmd::clear(playerid,params);
 }
 COMMAND:clear(playerid, params[]) {
 #pragma unused params
@@ -7138,7 +6957,7 @@ COMMAND:ejet(playerid,params[]) {
 }
 
 COMMAND:savepos(playerid,params[]) {
-	return cmd_gsave(playerid,params);
+	return callcmd::gsave(playerid,params);
 }
 COMMAND:gsave(playerid,params[]) {
 #pragma unused params
@@ -7307,7 +7126,7 @@ COMMAND:givearmor(playerid,params[]) {
 	return 1;
 }
 COMMAND:givearmour(playerid,params[]) {
-	return cmd_givearmor(playerid,params);
+	return callcmd::givearmor(playerid,params);
 }
 COMMAND:jetpack(playerid,params[]) {
 #pragma unused params
@@ -7538,7 +7357,7 @@ COMMAND:mapname(playerid,params[]) {
 	return 1;
 }
 COMMAND:servername(playerid,params[]) {
-	return cmd_hostname(playerid,params);
+	return callcmd::hostname(playerid,params);
 }
 COMMAND:getalias(playerid,params[]) {
 	if(PlayerInfo[playerid][AdminLevel] >= g_Level[lgetalias]) {
