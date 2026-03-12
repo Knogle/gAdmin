@@ -899,6 +899,8 @@ new g_WeatherID[]={
 };
 /*--------- Script begin --------*/
 
+/// gAdmin initialises its language, config and admin systems when the filterscript loads.
+/// Referenz: https://open.mp/docs/scripting/callbacks/OnFilterScriptInit
 public OnFilterScriptInit()
 {
 	new
@@ -909,6 +911,10 @@ public OnFilterScriptInit()
 		Month,
 		Day;
     g_bShutDown = false;
+	print("+---------------------------------------------+");
+	print("| gAdmin filterscript is loading on open.mp   |");
+	print("| Credits: Goldkiller / legacy gAdmin         |");
+	print("+---------------------------------------------+");
 	print(" Loading Script by Goldkiller");
 	print("-------------------------------------+");
 	print(" * gAdmin - Version: " #gVersion "");
@@ -919,6 +925,7 @@ public OnFilterScriptInit()
 	print(" * IRC Support - Ingocnitos IRC Plugin");
 	#endif
 	g_Max_Players = GetMaxPlayers();
+	printf("[gAdmin] OnFilterScriptInit reached. Version: %s | MaxPlayers: %d", gVersion, g_Max_Players);
 	if(!fexist("gAdmin Language/")) {
 		print(" ERROR: 'gAdmin Language' Folder is missing!(scriptfiles/gAdmin Language)");
 		print("gAdmin is shutting down!Read the install.txt again please.");
@@ -7998,8 +8005,7 @@ stock LoadConfig() {
    	INI_Save();
    	INI_Close();
 	// End of loading
-	GetConsoleVarAsString("worldtime",s,sizeof(s));
-	g_Time=strval(s);
+	g_Time = GetWorldTime();
 	IPBansEntryCount=0;
 	LoadIPBanEntrys();
 	g_bACMDS=false;
